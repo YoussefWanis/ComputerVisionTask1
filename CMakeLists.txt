@@ -11,9 +11,18 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 find_package(OpenCV REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 set(SOURCES
         src/main.cpp
         src/MainWindow.cpp
+        src/MainWindow_Noise.cpp
+        src/MainWindow_Filters.cpp
+        src/MainWindow_Edge.cpp
+        src/MainWindow_Histogram.cpp
+        src/MainWindow_Threshold.cpp
+        src/MainWindow_Frequency.cpp
+        src/MainWindow_Hybrid.cpp
+        src/MainWindow_NoiseFilter.cpp
         src/Utils.cpp
         src/Noise.cpp
         src/Filters.cpp

@@ -28,11 +28,10 @@ private slots:
     void handleLoad();
     void handleSave();
 
-    // Noise tab – processing (called on slider release)
+    // Noise tab
     void updateUniformNoise();
     void updateGaussianNoise();
     void updateSaltPepperNoise();
-    // Noise tab – label updates (called on value change)
     void updateUniformLabels();
     void updateGaussianLabels();
     void updateSPLabels();
@@ -112,7 +111,7 @@ private:
     FFTData cachedFFTSecond;
     bool secondFFTValid;
 
-    // Map for double-click
+    // Map for double-click and resize
     QMap<QLabel*, cv::Mat*> imageMap;
 
     // --- Noise tab ---
@@ -144,11 +143,17 @@ private:
     QLabel *rgbOriginalLabel;
     QLabel *redImageLabel, *greenImageLabel, *blueImageLabel;
     QLabel *redHistLabel, *greenHistLabel, *blueHistLabel;
+    // Added member variables to store images
+    cv::Mat redChannelImage, greenChannelImage, blueChannelImage;
+    cv::Mat redHistImage, greenHistImage, blueHistImage;
 
     // --- Histogram tab – Equalize / Normalize ---
     QLabel *eqOrigLabel, *eqImageLabel, *eqHistLabel, *eqCDFLabel;
     QLabel *normOrigLabel, *normImageLabel, *normHistLabel, *normCDFLabel;
     cv::Mat equalizedResult, normalizedResult;
+    // Added member variables for histogram and CDF images
+    cv::Mat eqHistImage, eqCDFImage;
+    cv::Mat normHistImage, normCDFImage;
 
     // --- Threshold tab ---
     QLabel *threshOriginalLabel;

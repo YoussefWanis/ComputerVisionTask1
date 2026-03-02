@@ -7,6 +7,7 @@
 #include "Threshold.h"
 #include "FrequencyDomain.h"
 #include "Hybrid.h"
+
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGridLayout>
@@ -28,11 +29,8 @@
 #include <QScreen>
 #include <QGuiApplication>
 #include <QApplication>
-#include <QMap>
-#include <QMouseEvent>
-#include <cmath>
 
-// Light and dark stylesheets
+// Light and dark stylesheets (unchanged)
 static const QString lightStyle = R"(
     QWidget { background-color: #f0f0f0; color: #000000; }
     QGroupBox { border: 2px solid #cccccc; border-radius: 5px; margin-top: 1ex; font-weight: bold; }
@@ -134,59 +132,70 @@ void MainWindow::setupUI() {
 
     QGroupBox *origGroup = new QGroupBox("Original Image");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *origLayout = new QVBoxLayout(origGroup);
     noiseOriginalLabel = new QLabel();
     setupImageLabel(noiseOriginalLabel);
-    origLayout->addWidget(noiseOriginalLabel);
+    origLayout->addWidget(noiseOriginalLabel, 1); // stretch factor 1
     noiseLayout->addWidget(origGroup, 0, 0, 2, 1);
 
     // Uniform
     QGroupBox *uniformGroup = new QGroupBox("Uniform Noise");
     uniformGroup->setAlignment(Qt::AlignCenter);
+    uniformGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *uniformLayout = new QVBoxLayout(uniformGroup);
     uniformLabel = new QLabel();
     setupImageLabel(uniformLabel);
-    uniformLayout->addWidget(uniformLabel);
+    uniformLayout->addWidget(uniformLabel, 1);
     uniformLowSlider = new QSlider(Qt::Horizontal); uniformLowSlider->setRange(0,100); uniformLowSlider->setValue(0);
     uniformHighSlider = new QSlider(Qt::Horizontal); uniformHighSlider->setRange(0,100); uniformHighSlider->setValue(50);
     uniformLowVal = new QLabel("0");
     uniformHighVal = new QLabel("50");
-    uniformLayout->addWidget(new QLabel("Low:")); uniformLayout->addWidget(uniformLowSlider); uniformLayout->addWidget(uniformLowVal);
-    uniformLayout->addWidget(new QLabel("High:")); uniformLayout->addWidget(uniformHighSlider); uniformLayout->addWidget(uniformHighVal);
+    uniformLayout->addWidget(new QLabel("Low:"));
+    uniformLayout->addWidget(uniformLowSlider);
+    uniformLayout->addWidget(uniformLowVal);
+    uniformLayout->addWidget(new QLabel("High:"));
+    uniformLayout->addWidget(uniformHighSlider);
+    uniformLayout->addWidget(uniformHighVal);
     noiseLayout->addWidget(uniformGroup, 0, 1);
 
     // Gaussian
     QGroupBox *gaussianGroup = new QGroupBox("Gaussian Noise");
     gaussianGroup->setAlignment(Qt::AlignCenter);
+    gaussianGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *gaussianLayout = new QVBoxLayout(gaussianGroup);
     gaussianLabel = new QLabel();
     setupImageLabel(gaussianLabel);
-    gaussianLayout->addWidget(gaussianLabel);
+    gaussianLayout->addWidget(gaussianLabel, 1);
     gaussianMeanSlider = new QSlider(Qt::Horizontal); gaussianMeanSlider->setRange(-100,100); gaussianMeanSlider->setValue(0);
     gaussianStdSlider = new QSlider(Qt::Horizontal); gaussianStdSlider->setRange(0,100); gaussianStdSlider->setValue(25);
     gaussianMeanVal = new QLabel("0");
     gaussianStdVal = new QLabel("25");
-    gaussianLayout->addWidget(new QLabel("Mean:")); gaussianLayout->addWidget(gaussianMeanSlider); gaussianLayout->addWidget(gaussianMeanVal);
-    gaussianLayout->addWidget(new QLabel("StdDev:")); gaussianLayout->addWidget(gaussianStdSlider); gaussianLayout->addWidget(gaussianStdVal);
+    gaussianLayout->addWidget(new QLabel("Mean:"));
+    gaussianLayout->addWidget(gaussianMeanSlider);
+    gaussianLayout->addWidget(gaussianMeanVal);
+    gaussianLayout->addWidget(new QLabel("StdDev:"));
+    gaussianLayout->addWidget(gaussianStdSlider);
+    gaussianLayout->addWidget(gaussianStdVal);
     noiseLayout->addWidget(gaussianGroup, 0, 2);
 
     // Salt & Pepper
     QGroupBox *spGroup = new QGroupBox("Salt & Pepper");
     spGroup->setAlignment(Qt::AlignCenter);
+    spGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *spLayout = new QVBoxLayout(spGroup);
     spLabel = new QLabel();
     setupImageLabel(spLabel);
-    spLayout->addWidget(spLabel);
+    spLayout->addWidget(spLabel, 1);
     spProbSlider = new QSlider(Qt::Horizontal); spProbSlider->setRange(1,100); spProbSlider->setValue(5);
     spProbVal = new QLabel("0.05");
-    spLayout->addWidget(new QLabel("Probability (%):")); spLayout->addWidget(spProbSlider); spLayout->addWidget(spProbVal);
+    spLayout->addWidget(new QLabel("Probability (%):"));
+    spLayout->addWidget(spProbSlider);
+    spLayout->addWidget(spProbVal);
     noiseLayout->addWidget(spGroup, 0, 3);
 
-    noiseLayout->setRowStretch(1,1);
-    noiseLayout->setColumnStretch(0,1);
-    noiseLayout->setColumnStretch(1,1);
-    noiseLayout->setColumnStretch(2,1);
-    noiseLayout->setColumnStretch(3,1);
+    noiseLayout->setRowStretch(0, 1);
+    for (int c = 0; c < 4; ++c) noiseLayout->setColumnStretch(c, 1);
     tabs->addTab(createScrollTab(noiseTabContent), "Noise");
 
     connect(uniformLowSlider, &QSlider::valueChanged, this, &MainWindow::updateUniformLabels);
@@ -209,56 +218,65 @@ void MainWindow::setupUI() {
 
     origGroup = new QGroupBox("Original Image");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     origLayout = new QVBoxLayout(origGroup);
     filterOriginalLabel = new QLabel();
     setupImageLabel(filterOriginalLabel);
-    origLayout->addWidget(filterOriginalLabel);
-    filterLayout->addWidget(origGroup, 0,0,2,1);
+    origLayout->addWidget(filterOriginalLabel, 1);
+    filterLayout->addWidget(origGroup, 0, 0, 2, 1);
 
     // Average
     QGroupBox *avgGroup = new QGroupBox("Average Filter");
     avgGroup->setAlignment(Qt::AlignCenter);
+    avgGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *avgLayout = new QVBoxLayout(avgGroup);
     averageLabel = new QLabel();
     setupImageLabel(averageLabel);
-    avgLayout->addWidget(averageLabel);
+    avgLayout->addWidget(averageLabel, 1);
     avgKernelSlider = new QSlider(Qt::Horizontal); avgKernelSlider->setRange(3,15); avgKernelSlider->setSingleStep(2); avgKernelSlider->setValue(3);
     avgKernelVal = new QLabel("3");
-    avgLayout->addWidget(new QLabel("Kernel size:")); avgLayout->addWidget(avgKernelSlider); avgLayout->addWidget(avgKernelVal);
-    filterLayout->addWidget(avgGroup, 0,1);
+    avgLayout->addWidget(new QLabel("Kernel size:"));
+    avgLayout->addWidget(avgKernelSlider);
+    avgLayout->addWidget(avgKernelVal);
+    filterLayout->addWidget(avgGroup, 0, 1);
 
     // Gaussian
     QGroupBox *gaussFilterGroup = new QGroupBox("Gaussian Filter");
     gaussFilterGroup->setAlignment(Qt::AlignCenter);
+    gaussFilterGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *gaussFilterLayout = new QVBoxLayout(gaussFilterGroup);
     gaussFilterLabel = new QLabel();
     setupImageLabel(gaussFilterLabel);
-    gaussFilterLayout->addWidget(gaussFilterLabel);
+    gaussFilterLayout->addWidget(gaussFilterLabel, 1);
     gaussKernelSlider = new QSlider(Qt::Horizontal); gaussKernelSlider->setRange(3,15); gaussKernelSlider->setSingleStep(2); gaussKernelSlider->setValue(3);
     gaussSigmaSlider = new QSlider(Qt::Horizontal); gaussSigmaSlider->setRange(1,50); gaussSigmaSlider->setValue(10);
     gaussKernelVal = new QLabel("3");
     gaussSigmaVal = new QLabel("1.0");
-    gaussFilterLayout->addWidget(new QLabel("Kernel:")); gaussFilterLayout->addWidget(gaussKernelSlider); gaussFilterLayout->addWidget(gaussKernelVal);
-    gaussFilterLayout->addWidget(new QLabel("Sigma (x10):")); gaussFilterLayout->addWidget(gaussSigmaSlider); gaussFilterLayout->addWidget(gaussSigmaVal);
-    filterLayout->addWidget(gaussFilterGroup, 0,2);
+    gaussFilterLayout->addWidget(new QLabel("Kernel:"));
+    gaussFilterLayout->addWidget(gaussKernelSlider);
+    gaussFilterLayout->addWidget(gaussKernelVal);
+    gaussFilterLayout->addWidget(new QLabel("Sigma (x10):"));
+    gaussFilterLayout->addWidget(gaussSigmaSlider);
+    gaussFilterLayout->addWidget(gaussSigmaVal);
+    filterLayout->addWidget(gaussFilterGroup, 0, 2);
 
     // Median
     QGroupBox *medianGroup = new QGroupBox("Median Filter");
     medianGroup->setAlignment(Qt::AlignCenter);
+    medianGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *medianLayout = new QVBoxLayout(medianGroup);
     medianLabel = new QLabel();
     setupImageLabel(medianLabel);
-    medianLayout->addWidget(medianLabel);
+    medianLayout->addWidget(medianLabel, 1);
     medianKernelSlider = new QSlider(Qt::Horizontal); medianKernelSlider->setRange(3,15); medianKernelSlider->setSingleStep(2); medianKernelSlider->setValue(3);
     medianKernelVal = new QLabel("3");
-    medianLayout->addWidget(new QLabel("Kernel:")); medianLayout->addWidget(medianKernelSlider); medianLayout->addWidget(medianKernelVal);
-    filterLayout->addWidget(medianGroup, 0,3);
+    medianLayout->addWidget(new QLabel("Kernel:"));
+    medianLayout->addWidget(medianKernelSlider);
+    medianLayout->addWidget(medianKernelVal);
+    filterLayout->addWidget(medianGroup, 0, 3);
 
-    filterLayout->setRowStretch(1,1);
-    filterLayout->setColumnStretch(0,1);
-    filterLayout->setColumnStretch(1,1);
-    filterLayout->setColumnStretch(2,1);
-    filterLayout->setColumnStretch(3,1);
+    filterLayout->setRowStretch(0, 1);
+    for (int c = 0; c < 4; ++c) filterLayout->setColumnStretch(c, 1);
     tabs->addTab(createScrollTab(filterTabContent), "Filters");
 
     connect(avgKernelSlider, &QSlider::valueChanged, this, &MainWindow::updateAvgLabels);
@@ -279,77 +297,86 @@ void MainWindow::setupUI() {
 
     origGroup = new QGroupBox("Original");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     origLayout = new QVBoxLayout(origGroup);
     edgeOriginalLabel = new QLabel();
     setupImageLabel(edgeOriginalLabel);
-    origLayout->addWidget(edgeOriginalLabel);
-    edgeLayout->addWidget(origGroup, 0,0,2,1);
+    origLayout->addWidget(edgeOriginalLabel, 1);
+    edgeLayout->addWidget(origGroup, 0, 0, 2, 1);
 
     // Sobel
     QGroupBox *sobelGroup = new QGroupBox("Sobel");
     sobelGroup->setAlignment(Qt::AlignCenter);
+    sobelGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *sobelLayout = new QVBoxLayout(sobelGroup);
     sobelLabel = new QLabel();
     setupImageLabel(sobelLabel);
-    sobelLayout->addWidget(sobelLabel);
-    edgeLayout->addWidget(sobelGroup, 0,1);
+    sobelLayout->addWidget(sobelLabel, 1);
+    edgeLayout->addWidget(sobelGroup, 0, 1);
 
     // Sobel X
     QGroupBox *sobelXGroup = new QGroupBox("Sobel X");
     sobelXGroup->setAlignment(Qt::AlignCenter);
+    sobelXGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *sobelXLayout = new QVBoxLayout(sobelXGroup);
     sobelXLabel = new QLabel();
     setupImageLabel(sobelXLabel);
-    sobelXLayout->addWidget(sobelXLabel);
-    edgeLayout->addWidget(sobelXGroup, 0,2);
+    sobelXLayout->addWidget(sobelXLabel, 1);
+    edgeLayout->addWidget(sobelXGroup, 0, 2);
 
     // Sobel Y
     QGroupBox *sobelYGroup = new QGroupBox("Sobel Y");
     sobelYGroup->setAlignment(Qt::AlignCenter);
+    sobelYGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *sobelYLayout = new QVBoxLayout(sobelYGroup);
     sobelYLabel = new QLabel();
     setupImageLabel(sobelYLabel);
-    sobelYLayout->addWidget(sobelYLabel);
-    edgeLayout->addWidget(sobelYGroup, 0,3);
+    sobelYLayout->addWidget(sobelYLabel, 1);
+    edgeLayout->addWidget(sobelYGroup, 0, 3);
 
     // Roberts
     QGroupBox *robertsGroup = new QGroupBox("Roberts");
     robertsGroup->setAlignment(Qt::AlignCenter);
+    robertsGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *robertsLayout = new QVBoxLayout(robertsGroup);
     robertsLabel = new QLabel();
     setupImageLabel(robertsLabel);
-    robertsLayout->addWidget(robertsLabel);
-    edgeLayout->addWidget(robertsGroup, 1,1);
+    robertsLayout->addWidget(robertsLabel, 1);
+    edgeLayout->addWidget(robertsGroup, 1, 1);
 
     // Prewitt
     QGroupBox *prewittGroup = new QGroupBox("Prewitt");
     prewittGroup->setAlignment(Qt::AlignCenter);
+    prewittGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *prewittLayout = new QVBoxLayout(prewittGroup);
     prewittLabel = new QLabel();
     setupImageLabel(prewittLabel);
-    prewittLayout->addWidget(prewittLabel);
-    edgeLayout->addWidget(prewittGroup, 1,2);
+    prewittLayout->addWidget(prewittLabel, 1);
+    edgeLayout->addWidget(prewittGroup, 1, 2);
 
     // Canny
     QGroupBox *cannyGroup = new QGroupBox("Canny");
     cannyGroup->setAlignment(Qt::AlignCenter);
+    cannyGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *cannyLayout = new QVBoxLayout(cannyGroup);
     cannyLabel = new QLabel();
     setupImageLabel(cannyLabel);
-    cannyLayout->addWidget(cannyLabel);
+    cannyLayout->addWidget(cannyLabel, 1);
     cannyLowSlider = new QSlider(Qt::Horizontal); cannyLowSlider->setRange(1,500); cannyLowSlider->setValue(100);
     cannyHighSlider = new QSlider(Qt::Horizontal); cannyHighSlider->setRange(1,500); cannyHighSlider->setValue(200);
     cannyLowVal = new QLabel("100");
     cannyHighVal = new QLabel("200");
-    cannyLayout->addWidget(new QLabel("Low:")); cannyLayout->addWidget(cannyLowSlider); cannyLayout->addWidget(cannyLowVal);
-    cannyLayout->addWidget(new QLabel("High:")); cannyLayout->addWidget(cannyHighSlider); cannyLayout->addWidget(cannyHighVal);
-    edgeLayout->addWidget(cannyGroup, 1,3);
+    cannyLayout->addWidget(new QLabel("Low:"));
+    cannyLayout->addWidget(cannyLowSlider);
+    cannyLayout->addWidget(cannyLowVal);
+    cannyLayout->addWidget(new QLabel("High:"));
+    cannyLayout->addWidget(cannyHighSlider);
+    cannyLayout->addWidget(cannyHighVal);
+    edgeLayout->addWidget(cannyGroup, 1, 3);
 
-    edgeLayout->setRowStretch(2,1);
-    edgeLayout->setColumnStretch(0,1);
-    edgeLayout->setColumnStretch(1,1);
-    edgeLayout->setColumnStretch(2,1);
-    edgeLayout->setColumnStretch(3,1);
+    edgeLayout->setRowStretch(0, 1);
+    edgeLayout->setRowStretch(1, 1);
+    for (int c = 0; c < 4; ++c) edgeLayout->setColumnStretch(c, 1);
     tabs->addTab(createScrollTab(edgeTabContent), "Edge");
 
     connect(cannyLowSlider, &QSlider::valueChanged, this, &MainWindow::updateCannyLabels);
@@ -369,54 +396,58 @@ void MainWindow::setupUI() {
 
     origGroup = new QGroupBox("Original");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     origLayout = new QVBoxLayout(origGroup);
     rgbOriginalLabel = new QLabel();
     setupImageLabel(rgbOriginalLabel);
-    origLayout->addWidget(rgbOriginalLabel);
-    rgbLayout->addWidget(origGroup, 0,0,2,1);
+    origLayout->addWidget(rgbOriginalLabel, 1);
+    rgbLayout->addWidget(origGroup, 0, 0, 2, 1);
 
+    // Red
     QGroupBox *redGroup = new QGroupBox("Red Channel");
     redGroup->setAlignment(Qt::AlignCenter);
+    redGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *redLayout = new QVBoxLayout(redGroup);
     redImageLabel = new QLabel();
     setupImageLabel(redImageLabel);
-    redLayout->addWidget(redImageLabel);
+    redLayout->addWidget(redImageLabel, 1);
     redHistLabel = new QLabel();
     setupImageLabel(redHistLabel);
-    redLayout->addWidget(redHistLabel);
-    rgbLayout->addWidget(redGroup, 0,1);
+    redLayout->addWidget(redHistLabel, 1);
+    rgbLayout->addWidget(redGroup, 0, 1);
 
+    // Green
     QGroupBox *greenGroup = new QGroupBox("Green Channel");
     greenGroup->setAlignment(Qt::AlignCenter);
+    greenGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *greenLayout = new QVBoxLayout(greenGroup);
     greenImageLabel = new QLabel();
     setupImageLabel(greenImageLabel);
-    greenLayout->addWidget(greenImageLabel);
+    greenLayout->addWidget(greenImageLabel, 1);
     greenHistLabel = new QLabel();
     setupImageLabel(greenHistLabel);
-    greenLayout->addWidget(greenHistLabel);
-    rgbLayout->addWidget(greenGroup, 0,2);
+    greenLayout->addWidget(greenHistLabel, 1);
+    rgbLayout->addWidget(greenGroup, 0, 2);
 
+    // Blue
     QGroupBox *blueGroup = new QGroupBox("Blue Channel");
     blueGroup->setAlignment(Qt::AlignCenter);
+    blueGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *blueLayout = new QVBoxLayout(blueGroup);
     blueImageLabel = new QLabel();
     setupImageLabel(blueImageLabel);
-    blueLayout->addWidget(blueImageLabel);
+    blueLayout->addWidget(blueImageLabel, 1);
     blueHistLabel = new QLabel();
     setupImageLabel(blueHistLabel);
-    blueLayout->addWidget(blueHistLabel);
-    rgbLayout->addWidget(blueGroup, 0,3);
+    blueLayout->addWidget(blueHistLabel, 1);
+    rgbLayout->addWidget(blueGroup, 0, 3);
 
     QPushButton *updateRGB = new QPushButton("Update RGB Channels");
-    rgbLayout->addWidget(updateRGB, 1,0,1,4);
+    rgbLayout->addWidget(updateRGB, 1, 0, 1, 4);
     connect(updateRGB, &QPushButton::clicked, this, &MainWindow::updateRGBChannels);
 
-    rgbLayout->setRowStretch(2,1);
-    rgbLayout->setColumnStretch(0,1);
-    rgbLayout->setColumnStretch(1,1);
-    rgbLayout->setColumnStretch(2,1);
-    rgbLayout->setColumnStretch(3,1);
+    rgbLayout->setRowStretch(0, 1);
+    for (int c = 0; c < 4; ++c) rgbLayout->setColumnStretch(c, 1);
     histSubTabs->addTab(createScrollTab(rgbTabContent), "RGB Channels");
 
     // Equalize/Normalize sub-tab
@@ -426,48 +457,53 @@ void MainWindow::setupUI() {
 
     origGroup = new QGroupBox("Original");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     origLayout = new QVBoxLayout(origGroup);
     eqOrigLabel = new QLabel();
     setupImageLabel(eqOrigLabel);
-    origLayout->addWidget(eqOrigLabel);
-    eqNormLayout->addWidget(origGroup, 0,0,3,1);
+    origLayout->addWidget(eqOrigLabel, 1);
+    eqNormLayout->addWidget(origGroup, 0, 0, 3, 1);
 
     QGroupBox *eqGroup = new QGroupBox("Equalize");
     eqGroup->setAlignment(Qt::AlignCenter);
+    eqGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *eqLayout = new QVBoxLayout(eqGroup);
     eqImageLabel = new QLabel();
     setupImageLabel(eqImageLabel);
-    eqLayout->addWidget(eqImageLabel);
+    eqLayout->addWidget(eqImageLabel, 1);
     eqHistLabel = new QLabel();
     setupImageLabel(eqHistLabel);
-    eqLayout->addWidget(eqHistLabel);
+    eqLayout->addWidget(eqHistLabel, 1);
     eqCDFLabel = new QLabel();
     setupImageLabel(eqCDFLabel);
-    eqLayout->addWidget(eqCDFLabel);
-    QPushButton *btnEq = new QPushButton("Update"); eqLayout->addWidget(btnEq);
-    eqNormLayout->addWidget(eqGroup, 0,1,3,1);
+    eqLayout->addWidget(eqCDFLabel, 1);
+    QPushButton *btnEq = new QPushButton("Update");
+    eqLayout->addWidget(btnEq);
+    eqNormLayout->addWidget(eqGroup, 0, 1, 3, 1);
     connect(btnEq, &QPushButton::clicked, this, &MainWindow::updateEqualize);
 
     QGroupBox *normGroup = new QGroupBox("Normalize");
     normGroup->setAlignment(Qt::AlignCenter);
+    normGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *normLayout = new QVBoxLayout(normGroup);
     normImageLabel = new QLabel();
     setupImageLabel(normImageLabel);
-    normLayout->addWidget(normImageLabel);
+    normLayout->addWidget(normImageLabel, 1);
     normHistLabel = new QLabel();
     setupImageLabel(normHistLabel);
-    normLayout->addWidget(normHistLabel);
+    normLayout->addWidget(normHistLabel, 1);
     normCDFLabel = new QLabel();
     setupImageLabel(normCDFLabel);
-    normLayout->addWidget(normCDFLabel);
-    QPushButton *btnNorm = new QPushButton("Update"); normLayout->addWidget(btnNorm);
-    eqNormLayout->addWidget(normGroup, 0,2,3,1);
+    normLayout->addWidget(normCDFLabel, 1);
+    QPushButton *btnNorm = new QPushButton("Update");
+    normLayout->addWidget(btnNorm);
+    eqNormLayout->addWidget(normGroup, 0, 2, 3, 1);
     connect(btnNorm, &QPushButton::clicked, this, &MainWindow::updateNormalize);
 
-    eqNormLayout->setRowStretch(3,1);
-    eqNormLayout->setColumnStretch(0,1);
-    eqNormLayout->setColumnStretch(1,1);
-    eqNormLayout->setColumnStretch(2,1);
+    eqNormLayout->setRowStretch(0, 1);
+    eqNormLayout->setColumnStretch(0, 1);
+    eqNormLayout->setColumnStretch(1, 1);
+    eqNormLayout->setColumnStretch(2, 1);
     histSubTabs->addTab(createScrollTab(eqNormTabContent), "Equalize/Normalize");
 
     histMainLayout->addWidget(histSubTabs);
@@ -480,41 +516,50 @@ void MainWindow::setupUI() {
 
     origGroup = new QGroupBox("Original");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     origLayout = new QVBoxLayout(origGroup);
     threshOriginalLabel = new QLabel();
     setupImageLabel(threshOriginalLabel);
-    origLayout->addWidget(threshOriginalLabel);
-    threshLayout->addWidget(origGroup, 0,0,2,1);
+    origLayout->addWidget(threshOriginalLabel, 1);
+    threshLayout->addWidget(origGroup, 0, 0, 2, 1);
 
     QGroupBox *globalGroup = new QGroupBox("Global Threshold");
     globalGroup->setAlignment(Qt::AlignCenter);
+    globalGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *globalLayout = new QVBoxLayout(globalGroup);
     globalLabel = new QLabel();
     setupImageLabel(globalLabel);
-    globalLayout->addWidget(globalLabel);
+    globalLayout->addWidget(globalLabel, 1);
     globalThreshSlider = new QSlider(Qt::Horizontal); globalThreshSlider->setRange(0,255); globalThreshSlider->setValue(128);
     globalThreshVal = new QLabel("128");
-    globalLayout->addWidget(new QLabel("Threshold:")); globalLayout->addWidget(globalThreshSlider); globalLayout->addWidget(globalThreshVal);
-    threshLayout->addWidget(globalGroup, 0,1);
+    globalLayout->addWidget(new QLabel("Threshold:"));
+    globalLayout->addWidget(globalThreshSlider);
+    globalLayout->addWidget(globalThreshVal);
+    threshLayout->addWidget(globalGroup, 0, 1);
 
     QGroupBox *localGroup = new QGroupBox("Local Threshold");
     localGroup->setAlignment(Qt::AlignCenter);
+    localGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *localLayout = new QVBoxLayout(localGroup);
     localLabel = new QLabel();
     setupImageLabel(localLabel);
-    localLayout->addWidget(localLabel);
+    localLayout->addWidget(localLabel, 1);
     localBlockSlider = new QSlider(Qt::Horizontal); localBlockSlider->setRange(3,51); localBlockSlider->setSingleStep(2); localBlockSlider->setValue(11);
     localConstSlider = new QSlider(Qt::Horizontal); localConstSlider->setRange(0,20); localConstSlider->setValue(2);
     localBlockVal = new QLabel("11");
     localConstVal = new QLabel("2");
-    localLayout->addWidget(new QLabel("Block size:")); localLayout->addWidget(localBlockSlider); localLayout->addWidget(localBlockVal);
-    localLayout->addWidget(new QLabel("Constant:")); localLayout->addWidget(localConstSlider); localLayout->addWidget(localConstVal);
-    threshLayout->addWidget(localGroup, 0,2);
+    localLayout->addWidget(new QLabel("Block size:"));
+    localLayout->addWidget(localBlockSlider);
+    localLayout->addWidget(localBlockVal);
+    localLayout->addWidget(new QLabel("Constant:"));
+    localLayout->addWidget(localConstSlider);
+    localLayout->addWidget(localConstVal);
+    threshLayout->addWidget(localGroup, 0, 2);
 
-    threshLayout->setRowStretch(1,1);
-    threshLayout->setColumnStretch(0,1);
-    threshLayout->setColumnStretch(1,1);
-    threshLayout->setColumnStretch(2,1);
+    threshLayout->setRowStretch(0, 1);
+    threshLayout->setColumnStretch(0, 1);
+    threshLayout->setColumnStretch(1, 1);
+    threshLayout->setColumnStretch(2, 1);
     tabs->addTab(createScrollTab(threshTabContent), "Threshold");
 
     connect(globalThreshSlider, &QSlider::valueChanged, this, &MainWindow::updateGlobalLabels);
@@ -532,38 +577,45 @@ void MainWindow::setupUI() {
 
     origGroup = new QGroupBox("Original");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     origLayout = new QVBoxLayout(origGroup);
     freqOriginalLabel = new QLabel();
     setupImageLabel(freqOriginalLabel);
-    origLayout->addWidget(freqOriginalLabel);
-    freqLayout->addWidget(origGroup, 0,0,2,1);
+    origLayout->addWidget(freqOriginalLabel, 1);
+    freqLayout->addWidget(origGroup, 0, 0, 2, 1);
 
     QGroupBox *lpGroup = new QGroupBox("Low Pass");
     lpGroup->setAlignment(Qt::AlignCenter);
+    lpGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *lpLayout = new QVBoxLayout(lpGroup);
     lowPassLabel = new QLabel();
     setupImageLabel(lowPassLabel);
-    lpLayout->addWidget(lowPassLabel);
+    lpLayout->addWidget(lowPassLabel, 1);
     lowPassCutoffSlider = new QSlider(Qt::Horizontal); lowPassCutoffSlider->setRange(1,100); lowPassCutoffSlider->setValue(30);
     lowPassCutoffVal = new QLabel("30");
-    lpLayout->addWidget(new QLabel("Cutoff:")); lpLayout->addWidget(lowPassCutoffSlider); lpLayout->addWidget(lowPassCutoffVal);
-    freqLayout->addWidget(lpGroup, 0,1);
+    lpLayout->addWidget(new QLabel("Cutoff:"));
+    lpLayout->addWidget(lowPassCutoffSlider);
+    lpLayout->addWidget(lowPassCutoffVal);
+    freqLayout->addWidget(lpGroup, 0, 1);
 
     QGroupBox *hpGroup = new QGroupBox("High Pass");
     hpGroup->setAlignment(Qt::AlignCenter);
+    hpGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *hpLayout = new QVBoxLayout(hpGroup);
     highPassLabel = new QLabel();
     setupImageLabel(highPassLabel);
-    hpLayout->addWidget(highPassLabel);
+    hpLayout->addWidget(highPassLabel, 1);
     highPassCutoffSlider = new QSlider(Qt::Horizontal); highPassCutoffSlider->setRange(1,100); highPassCutoffSlider->setValue(30);
     highPassCutoffVal = new QLabel("30");
-    hpLayout->addWidget(new QLabel("Cutoff:")); hpLayout->addWidget(highPassCutoffSlider); hpLayout->addWidget(highPassCutoffVal);
-    freqLayout->addWidget(hpGroup, 0,2);
+    hpLayout->addWidget(new QLabel("Cutoff:"));
+    hpLayout->addWidget(highPassCutoffSlider);
+    hpLayout->addWidget(highPassCutoffVal);
+    freqLayout->addWidget(hpGroup, 0, 2);
 
-    freqLayout->setRowStretch(1,1);
-    freqLayout->setColumnStretch(0,1);
-    freqLayout->setColumnStretch(1,1);
-    freqLayout->setColumnStretch(2,1);
+    freqLayout->setRowStretch(0, 1);
+    freqLayout->setColumnStretch(0, 1);
+    freqLayout->setColumnStretch(1, 1);
+    freqLayout->setColumnStretch(2, 1);
     tabs->addTab(createScrollTab(freqTabContent), "Frequency");
 
     connect(lowPassCutoffSlider, &QSlider::valueChanged, this, &MainWindow::updateLowPassLabels);
@@ -579,29 +631,33 @@ void MainWindow::setupUI() {
 
     QGroupBox *img1Group = new QGroupBox("Image 1");
     img1Group->setAlignment(Qt::AlignCenter);
+    img1Group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *img1Layout = new QVBoxLayout(img1Group);
     hybridImg1Label = new QLabel();
     setupImageLabel(hybridImg1Label);
-    img1Layout->addWidget(hybridImg1Label);
-    hybridLayout->addWidget(img1Group, 0,0);
+    img1Layout->addWidget(hybridImg1Label, 1);
+    hybridLayout->addWidget(img1Group, 0, 0);
 
     QGroupBox *img2Group = new QGroupBox("Image 2");
     img2Group->setAlignment(Qt::AlignCenter);
+    img2Group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *img2Layout = new QVBoxLayout(img2Group);
     hybridImg2Label = new QLabel();
     setupImageLabel(hybridImg2Label);
-    img2Layout->addWidget(hybridImg2Label);
-    hybridLayout->addWidget(img2Group, 0,1);
+    img2Layout->addWidget(hybridImg2Label, 1);
+    hybridLayout->addWidget(img2Group, 0, 1);
 
     QGroupBox *resultGroup = new QGroupBox("Hybrid");
     resultGroup->setAlignment(Qt::AlignCenter);
+    resultGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *resultLayout = new QVBoxLayout(resultGroup);
     hybridResultLabel = new QLabel();
     setupImageLabel(hybridResultLabel);
-    resultLayout->addWidget(hybridResultLabel);
-    hybridLayout->addWidget(resultGroup, 0,2);
+    resultLayout->addWidget(hybridResultLabel, 1);
+    hybridLayout->addWidget(resultGroup, 0, 2);
 
     QGroupBox *ctrlGroup = new QGroupBox("Parameters");
+    ctrlGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     QVBoxLayout *ctrlLayout = new QVBoxLayout(ctrlGroup);
     QPushButton *btnLoadSecond = new QPushButton("Load Second Image");
     ctrlLayout->addWidget(btnLoadSecond);
@@ -609,19 +665,24 @@ void MainWindow::setupUI() {
     hybridCutoff2Slider = new QSlider(Qt::Horizontal); hybridCutoff2Slider->setRange(1,100); hybridCutoff2Slider->setValue(30);
     hybridCutoff1Val = new QLabel("30");
     hybridCutoff2Val = new QLabel("30");
-    ctrlLayout->addWidget(new QLabel("Cutoff 1:")); ctrlLayout->addWidget(hybridCutoff1Slider); ctrlLayout->addWidget(hybridCutoff1Val);
-    ctrlLayout->addWidget(new QLabel("Cutoff 2:")); ctrlLayout->addWidget(hybridCutoff2Slider); ctrlLayout->addWidget(hybridCutoff2Val);
+    ctrlLayout->addWidget(new QLabel("Cutoff 1:"));
+    ctrlLayout->addWidget(hybridCutoff1Slider);
+    ctrlLayout->addWidget(hybridCutoff1Val);
+    ctrlLayout->addWidget(new QLabel("Cutoff 2:"));
+    ctrlLayout->addWidget(hybridCutoff2Slider);
+    ctrlLayout->addWidget(hybridCutoff2Val);
     hybridModeFirstLow = new QRadioButton("Img1 Low / Img2 High");
     hybridModeFirstHigh = new QRadioButton("Img1 High / Img2 Low");
     hybridModeFirstLow->setChecked(true);
     ctrlLayout->addWidget(hybridModeFirstLow);
     ctrlLayout->addWidget(hybridModeFirstHigh);
-    hybridLayout->addWidget(ctrlGroup, 1,0,1,3);
+    hybridLayout->addWidget(ctrlGroup, 1, 0, 1, 3);
 
-    hybridLayout->setRowStretch(2,1);
-    hybridLayout->setColumnStretch(0,1);
-    hybridLayout->setColumnStretch(1,1);
-    hybridLayout->setColumnStretch(2,1);
+    hybridLayout->setRowStretch(0, 1);
+    hybridLayout->setRowStretch(1, 0);
+    hybridLayout->setColumnStretch(0, 1);
+    hybridLayout->setColumnStretch(1, 1);
+    hybridLayout->setColumnStretch(2, 1);
     tabs->addTab(createScrollTab(hybridTabContent), "Hybrid");
 
     connect(btnLoadSecond, &QPushButton::clicked, this, &MainWindow::loadSecondImage);
@@ -639,37 +700,42 @@ void MainWindow::setupUI() {
 
     origGroup = new QGroupBox("Original");
     origGroup->setAlignment(Qt::AlignCenter);
+    origGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     origLayout = new QVBoxLayout(origGroup);
     nfOriginalLabel = new QLabel();
     setupImageLabel(nfOriginalLabel);
-    origLayout->addWidget(nfOriginalLabel);
-    nfLayout->addWidget(origGroup, 0,0,2,1);
+    origLayout->addWidget(nfOriginalLabel, 1);
+    nfLayout->addWidget(origGroup, 0, 0, 2, 1);
 
     QGroupBox *noisyGroup = new QGroupBox("Noisy Image");
     noisyGroup->setAlignment(Qt::AlignCenter);
+    noisyGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *noisyLayout = new QVBoxLayout(noisyGroup);
     nfNoisyLabel = new QLabel();
     setupImageLabel(nfNoisyLabel);
-    noisyLayout->addWidget(nfNoisyLabel);
-    nfLayout->addWidget(noisyGroup, 0,1);
+    noisyLayout->addWidget(nfNoisyLabel, 1);
+    nfLayout->addWidget(noisyGroup, 0, 1);
 
     QGroupBox *filteredGroup = new QGroupBox("Filtered Image");
     filteredGroup->setAlignment(Qt::AlignCenter);
+    filteredGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout *filteredLayout = new QVBoxLayout(filteredGroup);
     nfFilteredLabel = new QLabel();
     setupImageLabel(nfFilteredLabel);
-    filteredLayout->addWidget(nfFilteredLabel);
-    nfLayout->addWidget(filteredGroup, 0,2);
+    filteredLayout->addWidget(nfFilteredLabel, 1);
+    nfLayout->addWidget(filteredGroup, 0, 2);
 
     QGroupBox *metricsGroup = new QGroupBox("Metrics (Original vs Filtered)");
     metricsGroup->setAlignment(Qt::AlignCenter);
+    metricsGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     QVBoxLayout *metricsLayout = new QVBoxLayout(metricsGroup);
     nfMetricsLabel = new QLabel("MSE: --\nPSNR: --\nSNR: --");
     nfMetricsLabel->setAlignment(Qt::AlignCenter);
     metricsLayout->addWidget(nfMetricsLabel);
-    nfLayout->addWidget(metricsGroup, 1,1,1,2);
+    nfLayout->addWidget(metricsGroup, 1, 1, 1, 2);
 
     QGroupBox *noiseCtrlGroup = new QGroupBox("Noise Type");
+    noiseCtrlGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     QVBoxLayout *noiseCtrlLayout = new QVBoxLayout(noiseCtrlGroup);
     nfNoiseCombo = new QComboBox();
     nfNoiseCombo->addItems({"Uniform", "Gaussian", "Salt & Pepper"});
@@ -681,8 +747,12 @@ void MainWindow::setupUI() {
     nfUniformHigh = new QSlider(Qt::Horizontal); nfUniformHigh->setRange(0,100); nfUniformHigh->setValue(50);
     nfUniformLowVal = new QLabel("0");
     nfUniformHighVal = new QLabel("50");
-    uniformCtrlLayout->addWidget(new QLabel("Low:")); uniformCtrlLayout->addWidget(nfUniformLow); uniformCtrlLayout->addWidget(nfUniformLowVal);
-    uniformCtrlLayout->addWidget(new QLabel("High:")); uniformCtrlLayout->addWidget(nfUniformHigh); uniformCtrlLayout->addWidget(nfUniformHighVal);
+    uniformCtrlLayout->addWidget(new QLabel("Low:"));
+    uniformCtrlLayout->addWidget(nfUniformLow);
+    uniformCtrlLayout->addWidget(nfUniformLowVal);
+    uniformCtrlLayout->addWidget(new QLabel("High:"));
+    uniformCtrlLayout->addWidget(nfUniformHigh);
+    uniformCtrlLayout->addWidget(nfUniformHighVal);
 
     nfGaussianWidget = new QWidget();
     QVBoxLayout *gaussianCtrlLayout = new QVBoxLayout(nfGaussianWidget);
@@ -690,14 +760,20 @@ void MainWindow::setupUI() {
     nfGaussianStd = new QSlider(Qt::Horizontal); nfGaussianStd->setRange(0,100); nfGaussianStd->setValue(25);
     nfGaussianMeanVal = new QLabel("0");
     nfGaussianStdVal = new QLabel("25");
-    gaussianCtrlLayout->addWidget(new QLabel("Mean:")); gaussianCtrlLayout->addWidget(nfGaussianMean); gaussianCtrlLayout->addWidget(nfGaussianMeanVal);
-    gaussianCtrlLayout->addWidget(new QLabel("StdDev:")); gaussianCtrlLayout->addWidget(nfGaussianStd); gaussianCtrlLayout->addWidget(nfGaussianStdVal);
+    gaussianCtrlLayout->addWidget(new QLabel("Mean:"));
+    gaussianCtrlLayout->addWidget(nfGaussianMean);
+    gaussianCtrlLayout->addWidget(nfGaussianMeanVal);
+    gaussianCtrlLayout->addWidget(new QLabel("StdDev:"));
+    gaussianCtrlLayout->addWidget(nfGaussianStd);
+    gaussianCtrlLayout->addWidget(nfGaussianStdVal);
 
     nfSPWidget = new QWidget();
     QVBoxLayout *spCtrlLayout = new QVBoxLayout(nfSPWidget);
     nfSPProb = new QSlider(Qt::Horizontal); nfSPProb->setRange(1,100); nfSPProb->setValue(5);
     nfSPProbVal = new QLabel("0.05");
-    spCtrlLayout->addWidget(new QLabel("Probability (%):")); spCtrlLayout->addWidget(nfSPProb); spCtrlLayout->addWidget(nfSPProbVal);
+    spCtrlLayout->addWidget(new QLabel("Probability (%):"));
+    spCtrlLayout->addWidget(nfSPProb);
+    spCtrlLayout->addWidget(nfSPProbVal);
 
     noiseCtrlLayout->addWidget(nfUniformWidget);
     noiseCtrlLayout->addWidget(nfGaussianWidget);
@@ -705,9 +781,10 @@ void MainWindow::setupUI() {
     nfGaussianWidget->hide();
     nfSPWidget->hide();
 
-    nfLayout->addWidget(noiseCtrlGroup, 2,0);
+    nfLayout->addWidget(noiseCtrlGroup, 2, 0);
 
     QGroupBox *filterCtrlGroup = new QGroupBox("Filter Type");
+    filterCtrlGroup->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     QVBoxLayout *filterCtrlLayout = new QVBoxLayout(filterCtrlGroup);
     nfFilterCombo = new QComboBox();
     nfFilterCombo->addItems({"Average", "Gaussian", "Median"});
@@ -717,7 +794,9 @@ void MainWindow::setupUI() {
     QVBoxLayout *avgCtrlLayout = new QVBoxLayout(nfAvgWidget);
     nfAvgKernel = new QSlider(Qt::Horizontal); nfAvgKernel->setRange(3,15); nfAvgKernel->setSingleStep(2); nfAvgKernel->setValue(3);
     nfAvgKernelVal = new QLabel("3");
-    avgCtrlLayout->addWidget(new QLabel("Kernel:")); avgCtrlLayout->addWidget(nfAvgKernel); avgCtrlLayout->addWidget(nfAvgKernelVal);
+    avgCtrlLayout->addWidget(new QLabel("Kernel:"));
+    avgCtrlLayout->addWidget(nfAvgKernel);
+    avgCtrlLayout->addWidget(nfAvgKernelVal);
 
     nfGaussFilterWidget = new QWidget();
     QVBoxLayout *gaussFilterCtrlLayout = new QVBoxLayout(nfGaussFilterWidget);
@@ -725,14 +804,20 @@ void MainWindow::setupUI() {
     nfGaussSigma = new QSlider(Qt::Horizontal); nfGaussSigma->setRange(1,50); nfGaussSigma->setValue(10);
     nfGaussKernelVal = new QLabel("3");
     nfGaussSigmaVal = new QLabel("1.0");
-    gaussFilterCtrlLayout->addWidget(new QLabel("Kernel:")); gaussFilterCtrlLayout->addWidget(nfGaussKernel); gaussFilterCtrlLayout->addWidget(nfGaussKernelVal);
-    gaussFilterCtrlLayout->addWidget(new QLabel("Sigma (x10):")); gaussFilterCtrlLayout->addWidget(nfGaussSigma); gaussFilterCtrlLayout->addWidget(nfGaussSigmaVal);
+    gaussFilterCtrlLayout->addWidget(new QLabel("Kernel:"));
+    gaussFilterCtrlLayout->addWidget(nfGaussKernel);
+    gaussFilterCtrlLayout->addWidget(nfGaussKernelVal);
+    gaussFilterCtrlLayout->addWidget(new QLabel("Sigma (x10):"));
+    gaussFilterCtrlLayout->addWidget(nfGaussSigma);
+    gaussFilterCtrlLayout->addWidget(nfGaussSigmaVal);
 
     nfMedianWidget = new QWidget();
     QVBoxLayout *medianCtrlLayout = new QVBoxLayout(nfMedianWidget);
     nfMedianKernel = new QSlider(Qt::Horizontal); nfMedianKernel->setRange(3,15); nfMedianKernel->setSingleStep(2); nfMedianKernel->setValue(3);
     nfMedianKernelVal = new QLabel("3");
-    medianCtrlLayout->addWidget(new QLabel("Kernel:")); medianCtrlLayout->addWidget(nfMedianKernel); medianCtrlLayout->addWidget(nfMedianKernelVal);
+    medianCtrlLayout->addWidget(new QLabel("Kernel:"));
+    medianCtrlLayout->addWidget(nfMedianKernel);
+    medianCtrlLayout->addWidget(nfMedianKernelVal);
 
     filterCtrlLayout->addWidget(nfAvgWidget);
     filterCtrlLayout->addWidget(nfGaussFilterWidget);
@@ -740,12 +825,14 @@ void MainWindow::setupUI() {
     nfGaussFilterWidget->hide();
     nfMedianWidget->hide();
 
-    nfLayout->addWidget(filterCtrlGroup, 2,1);
+    nfLayout->addWidget(filterCtrlGroup, 2, 1);
 
-    nfLayout->setRowStretch(3,1);
-    nfLayout->setColumnStretch(0,1);
-    nfLayout->setColumnStretch(1,1);
-    nfLayout->setColumnStretch(2,1);
+    nfLayout->setRowStretch(0, 1);
+    nfLayout->setRowStretch(1, 0);
+    nfLayout->setRowStretch(2, 0);
+    nfLayout->setColumnStretch(0, 1);
+    nfLayout->setColumnStretch(1, 1);
+    nfLayout->setColumnStretch(2, 1);
     tabs->addTab(createScrollTab(nfTabContent), "Noise+Filter");
 
     connect(nfNoiseCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onNoiseTypeChanged);
@@ -891,334 +978,6 @@ void MainWindow::handleSave() {
     }
 }
 
-// --- Noise implementations ---
-void MainWindow::updateUniformNoise() {
-    if (originalResized.empty()) return;
-    double low = uniformLowSlider->value();
-    double high = uniformHighSlider->value();
-    uniformResult = Noise::addUniform(originalResized, low, high);
-    showImage(uniformLabel, uniformResult);
-}
-void MainWindow::updateGaussianNoise() {
-    if (originalResized.empty()) return;
-    double mean = gaussianMeanSlider->value();
-    double std = gaussianStdSlider->value();
-    gaussianResult = Noise::addGaussian(originalResized, mean, std);
-    showImage(gaussianLabel, gaussianResult);
-}
-void MainWindow::updateSaltPepperNoise() {
-    if (originalResized.empty()) return;
-    double prob = spProbSlider->value() / 100.0;
-    spResult = Noise::addSaltPepper(originalResized, prob);
-    showImage(spLabel, spResult);
-}
-void MainWindow::updateUniformLabels() {
-    uniformLowVal->setText(QString::number(uniformLowSlider->value()));
-    uniformHighVal->setText(QString::number(uniformHighSlider->value()));
-}
-void MainWindow::updateGaussianLabels() {
-    gaussianMeanVal->setText(QString::number(gaussianMeanSlider->value()));
-    gaussianStdVal->setText(QString::number(gaussianStdSlider->value()));
-}
-void MainWindow::updateSPLabels() {
-    double prob = spProbSlider->value() / 100.0;
-    spProbVal->setText(QString::number(prob, 'f', 2));
-}
-
-// --- Filters implementations ---
-void MainWindow::updateAverageFilter() {
-    if (originalResized.empty()) return;
-    int k = avgKernelSlider->value();
-    if (k % 2 == 0) k++;
-    averageResult = Filters::average(originalResized, k);
-    showImage(averageLabel, averageResult);
-}
-void MainWindow::updateGaussianFilter() {
-    if (originalResized.empty()) return;
-    int k = gaussKernelSlider->value();
-    if (k % 2 == 0) k++;
-    double sigma = gaussSigmaSlider->value() / 10.0;
-    gaussFilterResult = Filters::gaussian(originalResized, k, sigma);
-    showImage(gaussFilterLabel, gaussFilterResult);
-}
-void MainWindow::updateMedianFilter() {
-    if (originalResized.empty()) return;
-    int k = medianKernelSlider->value();
-    if (k % 2 == 0) k++;
-    medianResult = Filters::median(originalResized, k);
-    showImage(medianLabel, medianResult);
-}
-void MainWindow::updateAvgLabels() {
-    avgKernelVal->setText(QString::number(avgKernelSlider->value()));
-}
-void MainWindow::updateGaussFilterLabels() {
-    gaussKernelVal->setText(QString::number(gaussKernelSlider->value()));
-    double sigma = gaussSigmaSlider->value() / 10.0;
-    gaussSigmaVal->setText(QString::number(sigma, 'f', 1));
-}
-void MainWindow::updateMedianLabels() {
-    medianKernelVal->setText(QString::number(medianKernelSlider->value()));
-}
-
-// --- Edge implementations ---
-void MainWindow::updateSobel() {
-    if (originalResized.empty()) return;
-    sobelResult = EdgeDetection::sobel(originalResized);
-    showImage(sobelLabel, sobelResult);
-}
-void MainWindow::updateSobelX() {
-    if (originalResized.empty()) return;
-    sobelXResult = EdgeDetection::sobelX(originalResized);
-    showImage(sobelXLabel, sobelXResult);
-}
-void MainWindow::updateSobelY() {
-    if (originalResized.empty()) return;
-    sobelYResult = EdgeDetection::sobelY(originalResized);
-    showImage(sobelYLabel, sobelYResult);
-}
-void MainWindow::updateRoberts() {
-    if (originalResized.empty()) return;
-    robertsResult = EdgeDetection::roberts(originalResized);
-    showImage(robertsLabel, robertsResult);
-}
-void MainWindow::updatePrewitt() {
-    if (originalResized.empty()) return;
-    prewittResult = EdgeDetection::prewitt(originalResized);
-    showImage(prewittLabel, prewittResult);
-}
-void MainWindow::updateCanny() {
-    if (originalResized.empty()) return;
-    int low = cannyLowSlider->value();
-    int high = cannyHighSlider->value();
-    cannyResult = EdgeDetection::canny(originalResized, low, high);
-    showImage(cannyLabel, cannyResult);
-}
-void MainWindow::updateCannyLabels() {
-    cannyLowVal->setText(QString::number(cannyLowSlider->value()));
-    cannyHighVal->setText(QString::number(cannyHighSlider->value()));
-}
-
-// --- Histogram: RGB Channels ---
-void MainWindow::updateRGBChannels() {
-    if (originalResized.empty() || originalResized.channels() != 3) {
-        QMessageBox::warning(this, "Warning", "RGB channels require a color image.");
-        return;
-    }
-    std::vector<cv::Mat> bgr;
-    cv::split(originalResized, bgr);
-    cv::Mat rImg, gImg, bImg;
-    cv::cvtColor(bgr[2], rImg, cv::COLOR_GRAY2BGR);
-    cv::cvtColor(bgr[1], gImg, cv::COLOR_GRAY2BGR);
-    cv::cvtColor(bgr[0], bImg, cv::COLOR_GRAY2BGR);
-
-    showImage(redImageLabel, rImg);
-    showImage(greenImageLabel, gImg);
-    showImage(blueImageLabel, bImg);
-
-    cv::Mat histR = Utils::drawHistogram(Utils::computeHist(bgr[2]), cv::Scalar(0,0,255), 150, 150);
-    cv::Mat histG = Utils::drawHistogram(Utils::computeHist(bgr[1]), cv::Scalar(0,255,0), 150, 150);
-    cv::Mat histB = Utils::drawHistogram(Utils::computeHist(bgr[0]), cv::Scalar(255,0,0), 150, 150);
-    showImage(redHistLabel, histR);
-    showImage(greenHistLabel, histG);
-    showImage(blueHistLabel, histB);
-}
-
-// --- Histogram: Equalize / Normalize ---
-void MainWindow::updateEqualize() {
-    if (originalResized.empty()) return;
-    equalizedResult = Histogram::equalize(originalResized);
-    showImage(eqImageLabel, equalizedResult);
-    cv::Mat hist = Utils::computeHist(Utils::toGrayscale(equalizedResult));
-    cv::Mat cdf = Utils::computeCumulativeHist(hist);
-    cv::Mat histImg = Utils::drawHistogram(hist, cv::Scalar(0,0,0), 150, 150);
-    cv::Mat cdfImg = Utils::drawHistogram(cdf, cv::Scalar(0,0,0), 150, 150);
-    showImage(eqHistLabel, histImg);
-    showImage(eqCDFLabel, cdfImg);
-}
-void MainWindow::updateNormalize() {
-    if (originalResized.empty()) return;
-    normalizedResult = Histogram::normalize(originalResized);
-    showImage(normImageLabel, normalizedResult);
-    cv::Mat hist = Utils::computeHist(Utils::toGrayscale(normalizedResult));
-    cv::Mat cdf = Utils::computeCumulativeHist(hist);
-    cv::Mat histImg = Utils::drawHistogram(hist, cv::Scalar(0,0,0), 150, 150);
-    cv::Mat cdfImg = Utils::drawHistogram(cdf, cv::Scalar(0,0,0), 150, 150);
-    showImage(normHistLabel, histImg);
-    showImage(normCDFLabel, cdfImg);
-}
-
-// --- Threshold implementations ---
-void MainWindow::updateGlobalThreshold() {
-    if (originalResized.empty()) return;
-    int thresh = globalThreshSlider->value();
-    globalResult = Threshold::global(originalResized, thresh);
-    showImage(globalLabel, globalResult);
-}
-void MainWindow::updateLocalThreshold() {
-    if (originalResized.empty()) return;
-    int block = localBlockSlider->value();
-    int c = localConstSlider->value();
-    localResult = Threshold::local(originalResized, block, c);
-    showImage(localLabel, localResult);
-}
-void MainWindow::updateGlobalLabels() {
-    globalThreshVal->setText(QString::number(globalThreshSlider->value()));
-}
-void MainWindow::updateLocalLabels() {
-    localBlockVal->setText(QString::number(localBlockSlider->value()));
-    localConstVal->setText(QString::number(localConstSlider->value()));
-}
-
-// --- Frequency implementations ---
-void MainWindow::updateLowPass() {
-    if (originalResized.empty()) return;
-    if (!fftValid) {
-        cv::Mat gray = Utils::toGrayscale(originalResized);
-        cachedFFT = FrequencyDomain::computeFFT(gray);
-        fftValid = true;
-    }
-    float cutoff = lowPassCutoffSlider->value();
-    lowPassResult = FrequencyDomain::applyLowPass(cachedFFT, cutoff);
-    showImage(lowPassLabel, lowPassResult);
-}
-void MainWindow::updateHighPass() {
-    if (originalResized.empty()) return;
-    if (!fftValid) {
-        cv::Mat gray = Utils::toGrayscale(originalResized);
-        cachedFFT = FrequencyDomain::computeFFT(gray);
-        fftValid = true;
-    }
-    float cutoff = highPassCutoffSlider->value();
-    highPassResult = FrequencyDomain::applyHighPass(cachedFFT, cutoff);
-    showImage(highPassLabel, highPassResult);
-}
-void MainWindow::updateLowPassLabels() {
-    lowPassCutoffVal->setText(QString::number(lowPassCutoffSlider->value()));
-}
-void MainWindow::updateHighPassLabels() {
-    highPassCutoffVal->setText(QString::number(highPassCutoffSlider->value()));
-}
-
-// --- Hybrid implementations ---
-void MainWindow::loadSecondImage() {
-    QString path = QFileDialog::getOpenFileName(this, "Select Second Image", "", "Images (*.png *.jpg *.jpeg *.bmp)");
-    if (path.isEmpty()) return;
-    secondFull = cv::imread(path.toStdString());
-    if (secondFull.empty()) {
-        QMessageBox::critical(this, "Error", "Could not load second image.");
-        return;
-    }
-    secondResized = Utils::resizeAspect(secondFull, 512);
-    secondValid = true;
-    secondFFTValid = false;
-    showImage(hybridImg2Label, secondResized);
-    updateHybrid();
-}
-void MainWindow::updateHybrid() {
-    if (originalResized.empty() || !secondValid) return;
-    if (!fftValid) {
-        cv::Mat gray = Utils::toGrayscale(originalResized);
-        cachedFFT = FrequencyDomain::computeFFT(gray);
-        fftValid = true;
-    }
-    if (!secondFFTValid) {
-        cv::Mat gray = Utils::toGrayscale(secondResized);
-        cachedFFTSecond = FrequencyDomain::computeFFT(gray);
-        secondFFTValid = true;
-    }
-    float cutoff1 = hybridCutoff1Slider->value();
-    float cutoff2 = hybridCutoff2Slider->value();
-    cv::Mat low, high;
-    if (hybridModeFirstLow->isChecked()) {
-        low = FrequencyDomain::applyLowPass(cachedFFT, cutoff1);
-        high = FrequencyDomain::applyHighPass(cachedFFTSecond, cutoff2);
-    } else {
-        high = FrequencyDomain::applyHighPass(cachedFFT, cutoff1);
-        low = FrequencyDomain::applyLowPass(cachedFFTSecond, cutoff2);
-    }
-    if (low.size() != high.size()) cv::resize(high, high, low.size());
-    cv::addWeighted(low, 0.5, high, 0.5, 0, hybridResult);
-    showImage(hybridResultLabel, hybridResult);
-}
-void MainWindow::updateHybridLabels() {
-    hybridCutoff1Val->setText(QString::number(hybridCutoff1Slider->value()));
-    hybridCutoff2Val->setText(QString::number(hybridCutoff2Slider->value()));
-}
-
-// --- Noise+Filter implementations ---
-void MainWindow::onNoiseTypeChanged(int index) {
-    nfUniformWidget->setVisible(index == 0);
-    nfGaussianWidget->setVisible(index == 1);
-    nfSPWidget->setVisible(index == 2);
-    updateNoiseFilter();
-}
-void MainWindow::onFilterTypeChanged(int index) {
-    nfAvgWidget->setVisible(index == 0);
-    nfGaussFilterWidget->setVisible(index == 1);
-    nfMedianWidget->setVisible(index == 2);
-    updateNoiseFilter();
-}
-void MainWindow::updateNoiseFilter() {
-    if (originalResized.empty()) return;
-
-    int noiseIdx = nfNoiseCombo->currentIndex();
-    switch (noiseIdx) {
-    case 0:
-        nfNoisyImage = Noise::addUniform(originalResized, nfUniformLow->value(), nfUniformHigh->value());
-        break;
-    case 1:
-        nfNoisyImage = Noise::addGaussian(originalResized, nfGaussianMean->value(), nfGaussianStd->value());
-        break;
-    case 2:
-        nfNoisyImage = Noise::addSaltPepper(originalResized, nfSPProb->value() / 100.0);
-        break;
-    }
-    showImage(nfNoisyLabel, nfNoisyImage);
-
-    int filterIdx = nfFilterCombo->currentIndex();
-    switch (filterIdx) {
-    case 0: {
-        int k = nfAvgKernel->value();
-        if (k % 2 == 0) k++;
-        nfFilteredImage = Filters::average(nfNoisyImage, k);
-        break;
-    }
-    case 1: {
-        int k = nfGaussKernel->value();
-        if (k % 2 == 0) k++;
-        double sigma = nfGaussSigma->value() / 10.0;
-        nfFilteredImage = Filters::gaussian(nfNoisyImage, k, sigma);
-        break;
-    }
-    case 2: {
-        int k = nfMedianKernel->value();
-        if (k % 2 == 0) k++;
-        nfFilteredImage = Filters::median(nfNoisyImage, k);
-        break;
-    }
-    }
-    showImage(nfFilteredLabel, nfFilteredImage);
-
-    double mse, psnr, snr;
-    computeMetrics(originalResized, nfFilteredImage, mse, psnr, snr);
-    nfMetricsLabel->setText(QString("MSE: %1\nPSNR: %2 dB\nSNR: %3 dB")
-                             .arg(mse, 0, 'f', 2)
-                             .arg(psnr, 0, 'f', 2)
-                             .arg(snr, 0, 'f', 2));
-}
-void MainWindow::updateNoiseFilterLabels() {
-    nfUniformLowVal->setText(QString::number(nfUniformLow->value()));
-    nfUniformHighVal->setText(QString::number(nfUniformHigh->value()));
-    nfGaussianMeanVal->setText(QString::number(nfGaussianMean->value()));
-    nfGaussianStdVal->setText(QString::number(nfGaussianStd->value()));
-    nfSPProbVal->setText(QString::number(nfSPProb->value() / 100.0, 'f', 2));
-    nfAvgKernelVal->setText(QString::number(nfAvgKernel->value()));
-    nfGaussKernelVal->setText(QString::number(nfGaussKernel->value()));
-    nfGaussSigmaVal->setText(QString::number(nfGaussSigma->value() / 10.0, 'f', 1));
-    nfMedianKernelVal->setText(QString::number(nfMedianKernel->value()));
-}
-
-// --- Double-click to enlarge ---
 bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
     if (event->type() == QEvent::MouseButtonDblClick) {
         QLabel *label = qobject_cast<QLabel*>(obj);
@@ -1229,6 +988,19 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
                 return true;
             }
         }
+    }
+    // Handle resize events to update image scaling
+    else if (event->type() == QEvent::Resize) {
+        QLabel *label = qobject_cast<QLabel*>(obj);
+        if (label && imageMap.contains(label)) {
+            cv::Mat *mat = imageMap[label];
+            if (mat && !mat->empty()) {
+                // Re-show the image with the new label size
+                showImage(label, *mat);
+            }
+        }
+        // Do not consume the event; let it propagate
+        return false;
     }
     return QMainWindow::eventFilter(obj, event);
 }
