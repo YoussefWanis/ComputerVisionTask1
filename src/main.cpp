@@ -1,15 +1,13 @@
 #include <QApplication>
-#include "MainWindow.h"
+#include "ui/MainWindow.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
-    app.setWindowIcon(QIcon(":/icons/app_icon.png"));
-    // Set application info
-    QApplication::setApplicationName("Computer Vision Task 1");
-    QApplication::setApplicationVersion("1.0");
+    app.setStyle("Fusion");
+    QApplication::setApplicationName("CV Task 1 — Image Processing Pipeline");
 
-    MainWindow mainWindow;
-    mainWindow.show();
+    MainWindow win;
+    win.show();
 
     return app.exec();
 }

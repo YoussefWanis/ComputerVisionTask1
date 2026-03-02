@@ -1,54 +1,73 @@
-cmake_minimum_required(VERSION 3.20)
-project(ComputerVisionTask1)
+cmake_minimum_required(VERSION 3.14)
+project(CVTask1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)          # Qt Meta-Object Compiler
 
-find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+# ── Dependencies ─────────────────────────────────────────────────
+set(OpenCV_DIR "D:/opencv/build")
+set(CMAKE_PREFIX_PATH "D:/QT/6.10.2/msvc2022_64/lib/cmake")
 find_package(OpenCV REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
-include_directories(${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/include)
+# ── Include paths ────────────────────────────────────────────────
+include_directories(
+    ${CMAKE_SOURCE_DIR}/include
+    ${OpenCV_INCLUDE_DIRS}
+)
 
+# ── Source files ─────────────────────────────────────────────────
 set(SOURCES
-        src/main.cpp
-        src/MainWindow.cpp
-        src/MainWindow_Noise.cpp
-        src/MainWindow_Filters.cpp
-        src/MainWindow_Edge.cpp
-        src/MainWindow_Histogram.cpp
-        src/MainWindow_Threshold.cpp
-        src/MainWindow_Frequency.cpp
-        src/MainWindow_Hybrid.cpp
-        src/MainWindow_NoiseFilter.cpp
-        src/Utils.cpp
-        src/Noise.cpp
-        src/Filters.cpp
-        src/EdgeDetection.cpp
-        src/Histogram.cpp
-        src/Threshold.cpp
-        src/FrequencyDomain.cpp
-        src/Hybrid.cpp
+    # Models
+    src/models/ImageModel.cpp
+
+    # Utils (shared helpers)
+    src/utils/ImageUtils.cpp
+
+    # Processors
+    src/processors/ColorProcessor.cpp
+    src/processors/NoiseProcessor.cpp
+    src/processors/FilterProcessor.cpp
+    src/processors/EdgeDetectorProcessor.cpp
+    src/processors/HistogramProcessor.cpp
+    src/processors/FFTProcessor.cpp
+    src/processors/HybridProcessor.cpp
+
+    # Metrics
+    src/metrics/MetricsCalculator.cpp
+
+    # UI
+    src/ui/MainWindow.cpp
+    src/ui/MainWindow_NoiseFilter.cpp
+    src/ui/MainWindow_Edge.cpp
+    src/ui/MainWindow_Histogram.cpp
+    src/ui/MainWindow_FFT.cpp
+    src/ui/MainWindow_Hybrid.cpp
+
+    # Entry point
+    src/main.cpp
 )
 
 set(HEADERS
-        include/ImageProcessor.h
-        include/MainWindow.h
-        include/Utils.h
-        include/Noise.h
-        include/Filters.h
-        include/EdgeDetection.h
-        include/Histogram.h
-        include/Threshold.h
-        include/FrequencyDomain.h
-        include/Hybrid.h
+    include/models/ImageModel.h
+    include/utils/ImageUtils.h
+    include/processors/ColorProcessor.h
+    include/processors/NoiseProcessor.h
+    include/processors/FilterProcessor.h
+    include/processors/EdgeDetectorProcessor.h
+    include/processors/HistogramProcessor.h
+    include/processors/FFTProcessor.h
+    include/processors/HybridProcessor.h
+    include/metrics/MetricsCalculator.h
+    include/ui/MainWindow.h
+    include/ui/ZoomableImageDialog.h
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} resources.qrc app.rc)
-target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Widgets ${OpenCV_LIBS})
+# ── Build target ─────────────────────────────────────────────────
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
-if(WIN32)
-    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
-endif()
+target_link_libraries(${PROJECT_NAME}
+    ${OpenCV_LIBS}
+    Qt6::Widgets
+)
