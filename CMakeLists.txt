@@ -11,7 +11,6 @@ find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 find_package(OpenCV REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
 set(SOURCES
         src/main.cpp
         src/MainWindow.cpp
@@ -38,7 +37,7 @@ set(HEADERS
         include/Hybrid.h
 )
 
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} resources.qrc  app.rc)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} resources.qrc app.rc)
 target_link_libraries(${PROJECT_NAME} Qt6::Core Qt6::Widgets ${OpenCV_LIBS})
 
 if(WIN32)

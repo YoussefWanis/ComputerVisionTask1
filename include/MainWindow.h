@@ -3,13 +3,14 @@
 
 #include <QMainWindow>
 #include <QLabel>
-#include <QTabWidget>
-#include <QHBoxLayout>
-#include <QButtonGroup>
+#include <QSlider>
 #include <QRadioButton>
-#include <QWidget>
+#include <QButtonGroup>
+#include <QComboBox>
+#include <QGroupBox>
+#include <QGridLayout>
+#include <QMap>
 #include <opencv2/opencv.hpp>
-#include <vector>
 #include "FrequencyDomain.h"
 
 class MainWindow : public QMainWindow {
@@ -19,86 +20,174 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override = default;
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 private slots:
-    // File
+    // File actions
     void handleLoad();
     void handleSave();
-    void handleReset();
 
-    // Noise
-    void handleUniformNoise();
-    void handleGaussianNoise();
-    void handleSaltPepperNoise();
-    void handleAllNoise();
+    // Noise tab – processing (called on slider release)
+    void updateUniformNoise();
+    void updateGaussianNoise();
+    void updateSaltPepperNoise();
+    // Noise tab – label updates (called on value change)
+    void updateUniformLabels();
+    void updateGaussianLabels();
+    void updateSPLabels();
 
-    // Filters
-    void handleAverageFilter();
-    void handleGaussianFilter();
-    void handleMedianFilter();
-    void handleAllFilters();
+    // Filters tab
+    void updateAverageFilter();
+    void updateGaussianFilter();
+    void updateMedianFilter();
+    void updateAvgLabels();
+    void updateGaussFilterLabels();
+    void updateMedianLabels();
 
-    // Edge
-    void handleSobel();
-    void handleRoberts();
-    void handlePrewitt();
-    void handleCanny();
-    void handleAllEdges();
+    // Edge tab
+    void updateSobel();
+    void updateSobelX();
+    void updateSobelY();
+    void updateRoberts();
+    void updatePrewitt();
+    void updateCanny();
+    void updateCannyLabels();
 
-    // Histogram
-    void handleShowHistogramGray();
-    void handleShowHistogramRGB();
-    void handleEqualize();
-    void handleNormalize();
+    // Histogram tab – RGB channels
+    void updateRGBChannels();
 
-    // Threshold
-    void handleGlobalThreshold();
-    void handleLocalThreshold();
+    // Histogram tab – Equalize / Normalize
+    void updateEqualize();
+    void updateNormalize();
 
-    // Frequency (cached FFT)
-    void handleLowPass();
-    void handleHighPass();
+    // Threshold tab
+    void updateGlobalThreshold();
+    void updateLocalThreshold();
+    void updateGlobalLabels();
+    void updateLocalLabels();
 
-    // Hybrid
+    // Frequency tab
+    void updateLowPass();
+    void updateHighPass();
+    void updateLowPassLabels();
+    void updateHighPassLabels();
+
+    // Hybrid tab
     void loadSecondImage();
-    void handleHybrid();
+    void updateHybrid();
+    void updateHybridLabels();
+
+    // Noise+Filter tab
+    void updateNoiseFilter();
+    void onNoiseTypeChanged(int index);
+    void onFilterTypeChanged(int index);
+    void updateNoiseFilterLabels();
+
+    // Dark mode toggle
+    void toggleDarkMode(bool checked);
 
 private:
     void setupUI();
-    QWidget* createTab(const QString& title, const QStringList& actions);
+    void createToolBar();
+    void applyTheme(bool dark);
+    void setupImageLabel(QLabel* label);
+    void showImage(QLabel* label, const cv::Mat& mat);
+    void computeMetrics(const cv::Mat& original, const cv::Mat& processed,
+                        double& mse, double& psnr, double& snr);
+    void showEnlargedImage(const cv::Mat& img);
 
-    // Display helpers
-    void updateDisplay(const cv::Mat& mat);
-    void updateDisplay(const std::vector<cv::Mat>& images, const QStringList& titles = QStringList());
-    QPixmap scaleAndConvert(const cv::Mat& mat, int maxWidth, int maxHeight);
+    // Original image
+    cv::Mat originalFull;
+    cv::Mat originalResized;
 
-    // FFT cache for main image
-    void ensureFFTCached();
+    // Second image for hybrid
+    cv::Mat secondFull;
+    cv::Mat secondResized;
+    bool secondValid;
+
+    // FFT cache
     FFTData cachedFFT;
     bool fftValid;
-
-    // FFT cache for second image
-    void ensureSecondFFTCached();
     FFTData cachedFFTSecond;
     bool secondFFTValid;
 
-    // Hybrid mode selection (true = Image1 low, Image2 high; false = Image1 high, Image2 low)
-    bool hybridMode;  // true = first low, second high (default)
+    // Map for double-click
+    QMap<QLabel*, cv::Mat*> imageMap;
 
-    // UI elements for hybrid tab (to access radio buttons)
-    QRadioButton *radioFirstLow;
-    QRadioButton *radioFirstHigh;
+    // --- Noise tab ---
+    QLabel *noiseOriginalLabel;
+    QLabel *uniformLabel, *gaussianLabel, *spLabel;
+    QSlider *uniformLowSlider, *uniformHighSlider;
+    QSlider *gaussianMeanSlider, *gaussianStdSlider;
+    QSlider *spProbSlider;
+    QLabel *uniformLowVal, *uniformHighVal;
+    QLabel *gaussianMeanVal, *gaussianStdVal;
+    QLabel *spProbVal;
+    cv::Mat uniformResult, gaussianResult, spResult;
 
-    // Display area
-    QWidget *displayContainer;
-    QHBoxLayout *displayLayout;
-    QTabWidget *tabs;
+    // --- Filters tab ---
+    QLabel *filterOriginalLabel;
+    QLabel *averageLabel, *gaussFilterLabel, *medianLabel;
+    QSlider *avgKernelSlider, *gaussKernelSlider, *gaussSigmaSlider, *medianKernelSlider;
+    QLabel *avgKernelVal, *gaussKernelVal, *gaussSigmaVal, *medianKernelVal;
+    cv::Mat averageResult, gaussFilterResult, medianResult;
 
-    // Image data
-    cv::Mat originalFull;      // original loaded image (full size)
-    cv::Mat originalResized;   // resized version for processing
-    cv::Mat processedMat;      // current result to display
-    cv::Mat secondFull;        // second image (full size)
-    cv::Mat secondResized;     // resized second image
+    // --- Edge tab ---
+    QLabel *edgeOriginalLabel;
+    QLabel *sobelLabel, *sobelXLabel, *sobelYLabel, *robertsLabel, *prewittLabel, *cannyLabel;
+    QSlider *cannyLowSlider, *cannyHighSlider;
+    QLabel *cannyLowVal, *cannyHighVal;
+    cv::Mat sobelResult, sobelXResult, sobelYResult, robertsResult, prewittResult, cannyResult;
+
+    // --- Histogram tab – RGB channels ---
+    QLabel *rgbOriginalLabel;
+    QLabel *redImageLabel, *greenImageLabel, *blueImageLabel;
+    QLabel *redHistLabel, *greenHistLabel, *blueHistLabel;
+
+    // --- Histogram tab – Equalize / Normalize ---
+    QLabel *eqOrigLabel, *eqImageLabel, *eqHistLabel, *eqCDFLabel;
+    QLabel *normOrigLabel, *normImageLabel, *normHistLabel, *normCDFLabel;
+    cv::Mat equalizedResult, normalizedResult;
+
+    // --- Threshold tab ---
+    QLabel *threshOriginalLabel;
+    QLabel *globalLabel, *localLabel;
+    QSlider *globalThreshSlider;
+    QSlider *localBlockSlider, *localConstSlider;
+    QLabel *globalThreshVal, *localBlockVal, *localConstVal;
+    cv::Mat globalResult, localResult;
+
+    // --- Frequency tab ---
+    QLabel *freqOriginalLabel;
+    QLabel *lowPassLabel, *highPassLabel;
+    QSlider *lowPassCutoffSlider, *highPassCutoffSlider;
+    QLabel *lowPassCutoffVal, *highPassCutoffVal;
+    cv::Mat lowPassResult, highPassResult;
+
+    // --- Hybrid tab ---
+    QLabel *hybridImg1Label, *hybridImg2Label, *hybridResultLabel;
+    QSlider *hybridCutoff1Slider, *hybridCutoff2Slider;
+    QLabel *hybridCutoff1Val, *hybridCutoff2Val;
+    QRadioButton *hybridModeFirstLow, *hybridModeFirstHigh;
+    cv::Mat hybridResult;
+
+    // --- Noise+Filter tab ---
+    QLabel *nfOriginalLabel;
+    QLabel *nfNoisyLabel, *nfFilteredLabel;
+    QLabel *nfMetricsLabel;
+    QComboBox *nfNoiseCombo, *nfFilterCombo;
+    QWidget *nfUniformWidget, *nfGaussianWidget, *nfSPWidget;
+    QSlider *nfUniformLow, *nfUniformHigh;
+    QSlider *nfGaussianMean, *nfGaussianStd;
+    QSlider *nfSPProb;
+    QLabel *nfUniformLowVal, *nfUniformHighVal;
+    QLabel *nfGaussianMeanVal, *nfGaussianStdVal;
+    QLabel *nfSPProbVal;
+    QWidget *nfAvgWidget, *nfGaussFilterWidget, *nfMedianWidget;
+    QSlider *nfAvgKernel, *nfGaussKernel, *nfGaussSigma, *nfMedianKernel;
+    QLabel *nfAvgKernelVal, *nfGaussKernelVal, *nfGaussSigmaVal, *nfMedianKernelVal;
+    cv::Mat nfNoisyImage, nfFilteredImage;
 };
 
 #endif // MAINWINDOW_H

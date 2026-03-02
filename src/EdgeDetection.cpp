@@ -2,17 +2,28 @@
 #include "Utils.h"
 #include <cmath>
 
-cv::Mat EdgeDetection::sobel(const cv::Mat& input) {
+static cv::Mat sobelGradient(const cv::Mat& gray, const cv::Mat& kernel) {
+    return Utils::convolve(gray, kernel);
+}
+
+cv::Mat EdgeDetection::sobelX(const cv::Mat& input) {
     cv::Mat gray = Utils::toGrayscale(input);
     cv::Mat Gx = (cv::Mat_<float>(3,3) << -1,0,1, -2,0,2, -1,0,1);
+    return sobelGradient(gray, Gx);
+}
+
+cv::Mat EdgeDetection::sobelY(const cv::Mat& input) {
+    cv::Mat gray = Utils::toGrayscale(input);
     cv::Mat Gy = (cv::Mat_<float>(3,3) << -1,-2,-1, 0,0,0, 1,2,1);
+    return sobelGradient(gray, Gy);
+}
 
-    cv::Mat ix = Utils::convolve(gray, Gx);
-    cv::Mat iy = Utils::convolve(gray, Gy);
-
-    cv::Mat mag(gray.size(), CV_8U);
-    for (int i = 0; i < gray.rows; ++i) {
-        for (int j = 0; j < gray.cols; ++j) {
+cv::Mat EdgeDetection::sobel(const cv::Mat& input) {
+    cv::Mat ix = sobelX(input);
+    cv::Mat iy = sobelY(input);
+    cv::Mat mag(ix.size(), CV_8U);
+    for (int i = 0; i < ix.rows; ++i) {
+        for (int j = 0; j < ix.cols; ++j) {
             float gx = ix.at<uchar>(i,j);
             float gy = iy.at<uchar>(i,j);
             mag.at<uchar>(i,j) = cv::saturate_cast<uchar>(std::sqrt(gx*gx + gy*gy));

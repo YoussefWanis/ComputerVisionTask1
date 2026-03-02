@@ -8,6 +8,12 @@ public:
     // Manual Sobel edge magnitude
     static cv::Mat sobel(const cv::Mat& input);
 
+    // Manual Sobel X component
+    static cv::Mat sobelX(const cv::Mat& input);
+
+    // Manual Sobel Y component
+    static cv::Mat sobelY(const cv::Mat& input);
+
     // Manual Roberts edge magnitude
     static cv::Mat roberts(const cv::Mat& input);
 
