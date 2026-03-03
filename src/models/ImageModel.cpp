@@ -15,8 +15,8 @@
 /**
  * @brief Load an image from the specified file path.
  *
- * Uses OpenCV's cv::imread which stores the image in BGR colour
- * order by default.  The existing results cache is cleared because
+ * Uses OpenCV's cv::imread to load the image in grayscale.
+ * The existing results cache is cleared because
  * cached results from a previous image are no longer valid.
  *
  * @param path  File-system path to the image file.
@@ -24,10 +24,10 @@
  *         (file not found or unsupported format).
  */
 void ImageModel::load(const std::string& path) {
-    cv::Mat raw = cv::imread(path);
+    cv::Mat raw = cv::imread(path, cv::IMREAD_GRAYSCALE);
     if (raw.empty())
         throw std::runtime_error("Image not found or invalid path: " + path);
-    original_ = raw;    // Store the loaded image (BGR, CV_8UC3)
+    original_ = raw;    // Store the loaded image (Grayscale, CV_8UC1)
     cache_.clear();     // Invalidate all cached results from a previous image
 }
 
@@ -65,12 +65,12 @@ cv::Mat ImageModel::getOrCompute(const std::string& key,
                                  std::function<cv::Mat(const cv::Mat&)> func) {
     auto it = cache_.find(key);
     if (it == cache_.end()) {
-        // Not cached — compute, store, and return a clone
+        // Not cached â€” compute, store, and return a clone
         cv::Mat result = func(getOriginal());
         cache_[key] = result.clone();
         return result.clone();
     }
-    // Already cached — return a clone
+    // Already cached â€” return a clone
     return it->second.clone();
 }
 

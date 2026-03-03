@@ -60,10 +60,8 @@ void MainWindow::onApplyFFT() {
 
         // ── Compute the magnitude spectrum (once per loaded image) ──
         if (cachedSpectrum_.empty()) {
-            // Convert to grayscale for a single-channel spectrum
-            cv::Mat gray = (original.channels() == 3)
-                           ? ColorProcessor::toGrayscale(original)
-                           : original;
+            // Image is already grayscale
+            cv::Mat gray = original;
 
             // Convert to 64-bit float for DFT
             cv::Mat fgray;

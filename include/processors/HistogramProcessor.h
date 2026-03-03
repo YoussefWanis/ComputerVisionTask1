@@ -76,34 +76,13 @@ public:
     static ChannelHistData computeHistogramAndCDF(const cv::Mat& channel);
 
     /**
-     * @brief Compute per-channel histograms and CDFs for a BGR image.
-     *
-     * @param bgr  Input BGR image (CV_8UC3).
-     * @return     Map with keys "B", "G", "R", each mapping to a
-     *             ChannelHistData containing a 256-bin histogram and
-     *             a normalised CDF.
-     */
-    std::map<std::string, ChannelHistData>
-    computeChannelHistograms(const cv::Mat& bgr);
-
-private:
-    /**
      * @brief Equalise a single grayscale channel using CDF mapping.
      * @param channel  Single-channel input (CV_8UC1).
      * @return         Equalised CV_8UC1 channel.
      */
     static cv::Mat equalizeChannel(const cv::Mat& channel);
 
-    /**
-     * @brief Equalise a BGR image by operating on its luminance.
-     *
-     * Computes grayscale luminance, equalises it, then scales each
-     * BGR channel proportionally so colour ratios are preserved.
-     *
-     * @param bgr  Input BGR image (CV_8UC3).
-     * @return     Equalised CV_8UC3 image.
-     */
-    cv::Mat equalizeBGR(const cv::Mat& bgr);
+
 };
 
 #endif // HISTOGRAMPROCESSOR_H

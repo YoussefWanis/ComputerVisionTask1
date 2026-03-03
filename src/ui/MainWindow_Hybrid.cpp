@@ -42,8 +42,8 @@ void MainWindow::onLoadImageB() {
         "Images (*.png *.jpg *.jpeg *.bmp *.tif *.tiff *.webp);;All (*)");
     if (path.isEmpty()) return;   // user cancelled the dialog
 
-    // Read the image from disk in BGR colour space (OpenCV default)
-    imageBFull_ = cv::imread(path.toStdString());
+    // Read the image from disk natively in grayscale
+    imageBFull_ = cv::imread(path.toStdString(), cv::IMREAD_GRAYSCALE);
     if (imageBFull_.empty()) {
         QMessageBox::critical(this, "Error", "Could not load Image B.");
         return;

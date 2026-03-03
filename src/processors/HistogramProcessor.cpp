@@ -39,9 +39,7 @@
  */
 cv::Mat HistogramProcessor::equalize(const cv::Mat& image) {
     ImageUtils::assertNotEmpty(image, "HistogramProcessor::equalize");
-    if (image.channels() == 1)
-        return equalizeChannel(image);   // Direct grayscale path
-    return equalizeBGR(image);           // Luminance-preserving colour path
+    return equalizeChannel(image);   // Direct grayscale path
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -76,35 +74,6 @@ cv::Mat HistogramProcessor::normalize(const cv::Mat& image) {
     return out;
 }
 
-// ════════════════════════════════════════════════════════════════════
-//  Public — computeChannelHistograms
-//
-//  Returns keys "B", "G", "R" (adapted to BGR channel order).
-// ════════════════════════════════════════════════════════════════════
-
-/**
- * @brief Compute 256-bin histograms and normalised CDFs for each
- *        of the B, G, R channels.
- *
- * @param bgr  Input BGR image (CV_8UC3).
- * @return     Map with keys "B", "G", "R", each holding a
- *             ChannelHistData containing:
- *               - histogram: 256 integer counts.
- *               - cdf: 256-element normalised CDF in [0, 1].
- */
-std::map<std::string, ChannelHistData>
-HistogramProcessor::computeChannelHistograms(const cv::Mat& bgr) {
-    std::map<std::string, ChannelHistData> result;
-
-    // Split into individual B, G, R planes
-    std::vector<cv::Mat> channels = ColorProcessor::splitChannels(bgr);
-    const char* names[] = {"B", "G", "R"};
-
-    for (int c = 0; c < 3; ++c) {
-        result[names[c]] = computeHistogramAndCDF(channels[c]);
-    }
-    return result;
-}
 
 // ════════════════════════════════════════════════════════════════════
 //  Public — computeHistogramAndCDF
@@ -187,52 +156,4 @@ cv::Mat HistogramProcessor::equalizeChannel(const cv::Mat& channel) {
     return out;
 }
 
-// ════════════════════════════════════════════════════════════════════
-//  Private — BGR equalisation (luminance-based, matching Python)
-//
-//  Strategy: equalise the luminance channel, then scale each BGR
-//  component proportionally so that colour ratios are preserved.
-// ════════════════════════════════════════════════════════════════════
 
-/**
- * @brief Equalise a BGR colour image while preserving colour ratios.
- *
- * Steps:
- *   1. Convert to grayscale luminance L (BT.601 formula).
- *   2. Equalise L → L_eq.
- *   3. For each pixel:  C_out = C × (L_eq / (L + ε))
- *      where ε avoids division by zero on black pixels.
- *
- * @param bgr  Input BGR image (CV_8UC3).
- * @return     Equalised CV_8UC3 image.
- */
-cv::Mat HistogramProcessor::equalizeBGR(const cv::Mat& bgr) {
-    // Compute grayscale luminance and its equalised version
-    cv::Mat L = ColorProcessor::toGrayscale(bgr);
-    cv::Mat Leq = equalizeChannel(L);
-
-    // Convert to float for precise division
-    cv::Mat Lf, Leqf;
-    L.convertTo(Lf, CV_64F);
-    Leq.convertTo(Leqf, CV_64F);
-
-    const double eps = 1e-8;   // Small epsilon to prevent division by zero
-
-    // Scale each BGR channel: C_out = C × (L_eq / (L + eps))
-    cv::Mat result(bgr.size(), bgr.type());
-    for (int i = 0; i < bgr.rows; ++i) {
-        const uchar* src  = bgr.ptr<uchar>(i);
-        uchar* dst        = result.ptr<uchar>(i);
-        const double* lp  = Lf.ptr<double>(i);     // Original luminance
-        const double* leq = Leqf.ptr<double>(i);   // Equalised luminance
-        for (int j = 0; j < bgr.cols; ++j) {
-            double scale = leq[j] / (lp[j] + eps);
-            // Apply scale to each of the 3 channels (B, G, R)
-            for (int c = 0; c < 3; ++c) {
-                double val = src[j * 3 + c] * scale;
-                dst[j * 3 + c] = cv::saturate_cast<uchar>(val);
-            }
-        }
-    }
-    return result;
-}

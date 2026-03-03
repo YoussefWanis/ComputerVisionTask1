@@ -280,14 +280,10 @@ private slots:
     void onApplyEdge();
 
     // ── Tab 3: Histograms & Colour ──────────────────────────
-    /** @brief Slot: display per-channel images, histograms, and CDFs. */
-    void onShowChannels();
     /** @brief Slot: equalise the histogram and show before/after. */
     void onShowEqualize();
     /** @brief Slot: normalise the image and show before/after. */
     void onShowNormalize();
-    /** @brief Slot: convert to grayscale and show histograms. */
-    void onShowGrayscale();
 
     // ── Tab 4: Frequency Domain ─────────────────────────────
     /** @brief Slot: apply FFT low/high-pass filter and display results. */

@@ -417,10 +417,6 @@ QWidget* MainWindow::buildHistColorTab() {
     // ── Action buttons ──────────────────────────────────────
     auto* ctrl = new QHBoxLayout;
 
-    auto* btnCh = new QPushButton("R / G / B  Channel Analysis");
-    connect(btnCh, &QPushButton::clicked, this, &MainWindow::onShowChannels);
-    ctrl->addWidget(btnCh);
-
     auto* btnEq = new QPushButton("Equalize");
     connect(btnEq, &QPushButton::clicked, this, &MainWindow::onShowEqualize);
     ctrl->addWidget(btnEq);
@@ -428,10 +424,6 @@ QWidget* MainWindow::buildHistColorTab() {
     auto* btnNorm = new QPushButton("Normalize");
     connect(btnNorm, &QPushButton::clicked, this, &MainWindow::onShowNormalize);
     ctrl->addWidget(btnNorm);
-
-    auto* btnGray = new QPushButton("Grayscale");
-    connect(btnGray, &QPushButton::clicked, this, &MainWindow::onShowGrayscale);
-    ctrl->addWidget(btnGray);
 
     ctrl->addStretch();
     lay->addLayout(ctrl);
