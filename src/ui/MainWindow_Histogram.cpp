@@ -244,26 +244,14 @@ static void drawBeforeAfter(
 
     } else {
         // ── Grayscale path: 2 × 3 grid ─────────────────────────
-        // Lambda: compute histogram + CDF for a grayscale image
-        auto makeGrayHist = [](const cv::Mat& img)
-                -> std::pair<std::vector<int>, std::vector<double>> {
-            std::vector<int> hist(256, 0);
-            for (int i = 0; i < img.rows; ++i) {
-                const uchar* row = img.ptr<uchar>(i);
-                for (int j = 0; j < img.cols; ++j)
-                    hist[row[j]]++;
-            }
-            std::vector<double> cdf(256);
-            double cumSum = 0, total = img.rows * img.cols;
-            for (int k = 0; k < 256; ++k) {
-                cumSum += hist[k];
-                cdf[k] = cumSum / total;
-            }
-            return {hist, cdf};
-        };
-
-        auto [hA, cA] = makeGrayHist(before);
-        auto [hB, cB] = makeGrayHist(after);
+        // Compute histogram + CDF for grayscale images using Processor
+        ChannelHistData dataA = HistogramProcessor::computeHistogramAndCDF(before);
+        ChannelHistData dataB = HistogramProcessor::computeHistogramAndCDF(after);
+        
+        auto hA = dataA.histogram;
+        auto cA = dataA.cdf;
+        auto hB = dataB.histogram;
+        auto cB = dataB.cdf;
 
         // Row 0: before — image, histogram, CDF
         showCell(self, imgs[0][0], titles[0][0]);
@@ -417,21 +405,10 @@ void MainWindow::onShowGrayscale() {
         showImageOnLabel(hcImgs_[1][0], gray);
         hcTitles_[1][0]->setText("Grayscale (BT.601)");
 
-        // Compute grayscale histogram manually
-        std::vector<int> grayHist(256, 0);
-        for (int i = 0; i < gray.rows; ++i) {
-            const uchar* row = gray.ptr<uchar>(i);
-            for (int j = 0; j < gray.cols; ++j)
-                grayHist[row[j]]++;
-        }
-
-        // Build normalised CDF from the grayscale histogram
-        std::vector<double> grayCdf(256);
-        double cumSum = 0, total = gray.rows * gray.cols;
-        for (int k = 0; k < 256; ++k) {
-            cumSum += grayHist[k];
-            grayCdf[k] = cumSum / total;
-        }
+        // Compute grayscale histogram and CDF using Processor
+        ChannelHistData grayData = HistogramProcessor::computeHistogramAndCDF(gray);
+        std::vector<int>& grayHist = grayData.histogram;
+        std::vector<double>& grayCdf = grayData.cdf;
 
         // Render and display the grayscale histogram
         cv::Mat gh = renderHistogramImage(grayHist, cv::Scalar(128, 128, 128));

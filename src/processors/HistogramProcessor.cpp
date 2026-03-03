@@ -101,30 +101,42 @@ HistogramProcessor::computeChannelHistograms(const cv::Mat& bgr) {
     const char* names[] = {"B", "G", "R"};
 
     for (int c = 0; c < 3; ++c) {
-        ChannelHistData data;
-        data.histogram.assign(256, 0);   // Initialise all bins to zero
-
-        const cv::Mat& ch = channels[c];
-
-        // Count pixel intensities into 256 bins
-        for (int i = 0; i < ch.rows; ++i) {
-            const uchar* row = ch.ptr<uchar>(i);
-            for (int j = 0; j < ch.cols; ++j)
-                data.histogram[row[j]]++;
-        }
-
-        // Build the cumulative distribution function (CDF)
-        data.cdf.resize(256);
-        double cumSum = 0;
-        double totalPixels = ch.rows * ch.cols;
-        for (int k = 0; k < 256; ++k) {
-            cumSum += data.histogram[k];
-            data.cdf[k] = cumSum / totalPixels;   // Normalise to [0, 1]
-        }
-
-        result[names[c]] = std::move(data);
+        result[names[c]] = computeHistogramAndCDF(channels[c]);
     }
     return result;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  Public — computeHistogramAndCDF
+// ════════════════════════════════════════════════════════════════════
+
+/**
+ * @brief Compute the 256-bin histogram and normalised CDF for a single channel.
+ *
+ * @param channel Single-channel input (CV_8UC1).
+ * @return ChannelHistData containing the histogram and CDF.
+ */
+ChannelHistData HistogramProcessor::computeHistogramAndCDF(const cv::Mat& channel) {
+    ChannelHistData data;
+    data.histogram.assign(256, 0);
+
+    // Count pixel intensities into 256 bins
+    for (int i = 0; i < channel.rows; ++i) {
+        const uchar* row = channel.ptr<uchar>(i);
+        for (int j = 0; j < channel.cols; ++j)
+            data.histogram[row[j]]++;
+    }
+
+    // Build the cumulative distribution function (CDF)
+    data.cdf.resize(256);
+    double cumSum = 0;
+    double totalPixels = channel.rows * channel.cols;
+    for (int k = 0; k < 256; ++k) {
+        cumSum += data.histogram[k];
+        data.cdf[k] = cumSum / totalPixels;   // Normalise to [0, 1]
+    }
+
+    return data;
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -135,47 +147,34 @@ HistogramProcessor::computeChannelHistograms(const cv::Mat& bgr) {
  * @brief Equalise a single grayscale channel using CDF-based mapping.
  *
  * Algorithm:
- *   1. Compute the 256-bin histogram.
- *   2. Build the cumulative distribution function (CDF).
- *   3. Find cdf_min (the first non-zero CDF value).
+ *   1. Compute the 256-bin histogram and normalised CDF.
+ *   3. Find cdf_min_norm (the first non-zero CDF value).
  *   4. Build a 256-entry LUT:
- *        lut[k] = round( (cdf[k] − cdf_min) / (N − cdf_min) × 255 )
+ *        lut[k] = round( (cdf_norm[k] − cdf_min_norm) / (1.0 − cdf_min_norm) × 255 )
  *   5. Map every pixel through the LUT.
  *
  * @param channel  Single-channel input (CV_8UC1).
  * @return         Equalised CV_8UC1 channel.
  */
 cv::Mat HistogramProcessor::equalizeChannel(const cv::Mat& channel) {
-    // Step 1: Compute histogram (256 bins)
-    int hist[256] = {};
-    for (int i = 0; i < channel.rows; ++i) {
-        const uchar* row = channel.ptr<uchar>(i);
-        for (int j = 0; j < channel.cols; ++j)
-            hist[row[j]]++;
-    }
+    // Step 1 & 2: Compute histogram and normalised CDF
+    ChannelHistData data = computeHistogramAndCDF(channel);
 
-    // Step 2: Build cumulative distribution function
-    double cdf[256];
-    cdf[0] = hist[0];
-    for (int k = 1; k < 256; ++k)
-        cdf[k] = cdf[k - 1] + hist[k];
-
-    // Step 3: Find cdf_min — the first non-zero cumulative count
-    double cdfMin = 0;
+    // Step 3: Find cdf_min_norm — the first non-zero cumulative count
+    double cdfMinNorm = 0;
     for (int k = 0; k < 256; ++k) {
-        if (cdf[k] > 0) { cdfMin = cdf[k]; break; }
+        if (data.cdf[k] > 0) { cdfMinNorm = data.cdf[k]; break; }
     }
 
     // Denominator for the LUT mapping
-    int N = channel.rows * channel.cols;
-    double denom = N - cdfMin;
-    if (denom == 0) return channel.clone();   // All pixels identical — nothing to do
+    double denom = 1.0 - cdfMinNorm;
+    if (denom <= 0) return channel.clone();   // All pixels identical — nothing to do
 
     // Step 4: Build the equalisation look-up table
     uchar lut[256];
     for (int k = 0; k < 256; ++k)
         lut[k] = cv::saturate_cast<uchar>(
-                    std::round((cdf[k] - cdfMin) / denom * 255.0));
+                    std::round((data.cdf[k] - cdfMinNorm) / denom * 255.0));
 
     // Step 5: Apply the LUT to every pixel
     cv::Mat out(channel.size(), CV_8UC1);

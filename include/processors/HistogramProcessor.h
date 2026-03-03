@@ -69,6 +69,13 @@ public:
     static cv::Mat normalize(const cv::Mat& image);
 
     /**
+     * @brief Compute the 256-bin histogram and normalised CDF for a single channel.
+     * @param channel Single-channel input (CV_8UC1).
+     * @return ChannelHistData containing the histogram and CDF.
+     */
+    static ChannelHistData computeHistogramAndCDF(const cv::Mat& channel);
+
+    /**
      * @brief Compute per-channel histograms and CDFs for a BGR image.
      *
      * @param bgr  Input BGR image (CV_8UC3).
