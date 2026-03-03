@@ -85,7 +85,7 @@ private:
      * @param channel  Single-channel input (CV_8UC1).
      * @return         Equalised CV_8UC1 channel.
      */
-    cv::Mat equalizeChannel(const cv::Mat& channel);
+    static cv::Mat equalizeChannel(const cv::Mat& channel);
 
     /**
      * @brief Equalise a BGR image by operating on its luminance.

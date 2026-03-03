@@ -7,6 +7,8 @@ project(ComputerVisionTask1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_AUTORCC ON)
+
 # Enable Qt's Meta-Object Compiler (MOC) so that Q_OBJECT macros
 # in headers are automatically processed during the build
 set(CMAKE_AUTOMOC ON)
@@ -28,6 +30,7 @@ include_directories(
 # ── Source files ─────────────────────────────────────────────────
 # All .cpp implementation files grouped by logical module
 set(SOURCES
+        resources.qrc
     # Models — application data layer (loaded image + result cache)
     src/models/ImageModel.cpp
 

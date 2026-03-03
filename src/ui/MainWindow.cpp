@@ -19,7 +19,7 @@
 
 #include "ui/MainWindow.h"
 #include "ui/ZoomableImageDialog.h"
-
+#include <QIcon>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QSizePolicy>
@@ -46,9 +46,12 @@
  */
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
-    , noiseProc_(0)          // 0 → random seed from std::random_device
+    , noiseProc_(0)
 {
     setWindowTitle("CV Task 1 — Image Processing Pipeline");
+
+    setWindowIcon(QIcon(":/resources/app_icon.ico"));
+
     setMinimumSize(1200, 750);
     buildUI();
 }
