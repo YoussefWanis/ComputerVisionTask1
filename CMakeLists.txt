@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 # Define the project name and language (C++)
-project(CVTask1 LANGUAGES CXX)
+project(ComputerVisionTask1 LANGUAGES CXX)
 
 # Enforce C++17 as the language standard across all targets
 set(CMAKE_CXX_STANDARD 17)
@@ -12,13 +12,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 # ── Dependencies ─────────────────────────────────────────────────
-# Point CMake to the locally-installed OpenCV build directory
-set(OpenCV_DIR "D:/opencv/build")
-
-# Point CMake to the Qt6 CMake config directory so find_package
-# can locate the Qt modules
-set(CMAKE_PREFIX_PATH "D:/QT/6.10.2/msvc2022_64/lib/cmake")
-
 # Locate OpenCV (provides ${OpenCV_LIBS} and ${OpenCV_INCLUDE_DIRS})
 find_package(OpenCV REQUIRED)
 
